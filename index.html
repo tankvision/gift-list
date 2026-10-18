@@ -127,6 +127,7 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 
 .addperson { min-height: 52px; border: 2px dashed var(--dash); border-radius: 14px; background: transparent; color: var(--ink); font-size: 15px; font-weight: 700; }
 .foot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.foot-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
 .foot-note { margin: 0; text-align: center; font-size: 13px; line-height: 1.5; color: var(--muted); }
 .lock { background: none; border: 0; min-height: 44px; padding: 0 8px; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .banner { font-size: 13px; color: var(--gold); background: var(--given-bg); border-radius: 10px; padding: 8px 12px; text-align: center; }
@@ -486,7 +487,10 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       <button class="addperson" data-act="add-person">+ Add a person</button>
       <div class="foot">
         <p class="foot-note">Tap a status to move it along: Idea → Bought → Wrapped → Given.<br>Tap a name or gift to edit it.</p>
-        <button class="lock" data-act="lock">Lock on this phone</button>
+        <div class="foot-actions">
+          <button class="lock" data-act="export">Export a backup</button>
+          <button class="lock" data-act="lock">Lock on this phone</button>
+        </div>
       </div>`;
   }
 
@@ -515,8 +519,49 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       case "add-person": personSheet(null); break;
       case "budget": budgetSheet(); break;
       case "lock": lock(""); break;
+      case "export": exportBackup(); break;
     }
   });
+
+  /* ---------- export ---------- */
+  function csvCell(v) {
+    let s = v == null ? "" : String(v);
+    if (/^[=+\-@]/.test(s)) s = "'" + s;   // keep spreadsheet apps from treating text as a formula
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+  function buildCsv(data) {
+    const rows = [["Person", "Person budget", "Gift", "Store", "Price", "Status"]];
+    for (const p of data.people) {
+      const gs = data.gifts.filter(g => g.person_id === p.id);
+      if (!gs.length) rows.push([p.name, p.budget, "", "", "", ""]);
+      for (const g of gs) rows.push([p.name, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)]]);
+    }
+    rows.push([]);
+    rows.push(["Overall budget", data.overall_budget]);
+    rows.push(["Exported", new Date().toLocaleString()]);
+    return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  }
+  async function exportBackup() {
+    // Use the list on screen (refreshed every few seconds) so the share sheet opens straight from the tap.
+    if (!state.data) { toast("Nothing to export yet."); return; }
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const name = `christmas-gifts-${stamp}.csv`;
+    const csv = buildCsv(state.data);
+    let file = null;
+    try { file = new File([csv], name, { type: "text/csv" }); } catch (_) {}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "Christmas gift list backup" }); }
+      catch (e) { if (e && e.name !== "AbortError") toast("Couldn't open the share sheet. Try again."); }
+    } else {
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      toast("Backup saved to your downloads.");
+    }
+    if (state.offline) toast("You're offline, so this backup is from " + new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+  }
 
   async function cycle(id) {
     if (busy.has(id)) return;
