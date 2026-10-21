@@ -331,6 +331,29 @@ html.locked, html.locked body { overflow: hidden; }
 .pick-row .avatar { width: 36px; height: 36px; font-size: 14px; }
 .pick-new { color: var(--green); }
 .optlist, .steps { display: flex; flex-direction: column; gap: 8px; }
+/* "For" on a new gift from the 🎁 button, and its search panel pinned to the top of the screen */
+.forbtn { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); font-size: 16px; text-align: left; }
+.forpick { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 4px 4px 4px 14px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 16px; font-weight: 700; }
+.forpick button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: var(--bg); color: var(--ink); font-size: 14px; font-weight: 700; }
+.forpanel { position: fixed; inset: 0; z-index: 35; background: var(--scrim); }
+.fp-box {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--card); border-bottom: 1px solid var(--line); border-radius: 0 0 18px 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.fp-head { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 560px; margin: 0 auto; }
+.fp-head input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid var(--pink); background: var(--bg); color: var(--ink); -webkit-appearance: none; appearance: none; }
+.fp-head input:focus { outline: none; }
+.fp-cancel { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--soft); font-size: 15px; font-weight: 700; }
+.fp-list { display: flex; flex-direction: column; width: 100%; max-width: 560px; margin: 0 auto; max-height: 38vh; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 12px; background: var(--inset); }
+.foropt { min-height: 48px; padding: 0 14px; display: flex; align-items: center; gap: 4px; flex-shrink: 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font-size: 16px; font-weight: 700; }
+.foropt:last-child { border-bottom: 0; }
+.foropt small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.foropt.new { color: var(--green); }
+.foropt.active, .foropt:active { background: var(--line); }
+.fornone { margin: 0; padding: 12px 14px 6px; font-size: 14px; color: var(--muted); }
+.newperson { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); text-align: left; font-size: 15px; font-weight: 700; }
 .opt small { font-size: 13px; font-weight: 500; color: var(--muted); }
 .opt[aria-pressed="true"] { border-color: var(--green); background: var(--bought-bg); }
@@ -346,6 +369,16 @@ html.locked, html.locked body { overflow: hidden; }
 <button class="fab" id="fab" type="button" aria-label="Add a gift" hidden>🎁</button>
 <div class="undo" id="undo" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
+<div class="forpanel" id="forpanel" hidden>
+  <div class="fp-box" role="dialog" aria-modal="true" aria-label="Who's it for?">
+    <div class="fp-head">
+      <input id="fp-q" type="text" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"
+        placeholder="Who's it for? Type a name" aria-label="Who's it for? Type a name" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="fp-list">
+      <button type="button" class="fp-cancel" id="fp-cancel">Cancel</button>
+    </div>
+    <div class="fp-list" id="fp-list" role="listbox" aria-label="Matching people"></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
@@ -366,6 +399,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const XICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
   const PENCIL_L = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
   const STAR = '<span class="star" role="img" aria-label="kid">⭐</span>';
+  const SEARCH = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>';
   const EYE_OFF = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="M2 2l20 20"></path></svg>';
   const SORTS = [
     ["added", "Order added", "The order people were added"],
@@ -406,6 +440,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const pscrim = document.getElementById("pscrim");
   const fab = document.getElementById("fab");
   const undoEl = document.getElementById("undo");
+  const forpanel = document.getElementById("forpanel");
   let openPerson = null;    // id of the person whose card is open
   let pLastFocus = null;
 
@@ -843,7 +878,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     }
   }
   app.addEventListener("click", onAct);
-  fab.addEventListener("click", () => { if (state.data) pickerSheet(); });
+  fab.addEventListener("click", () => { if (state.data) giftSheet(null, null); });
   pscrim.addEventListener("click", e => { if (e.target === pscrim) { closePersonCard(); return; } onAct(e); });
 
   async function cycle(id) {
@@ -1061,6 +1096,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
 
   function closeSheet(instant) {
+    if (!forpanel.hidden) closeForPanel();
     if (scrim.hidden) return;
     const token = ++sheetToken;
     const form = scrim.querySelector("form");
@@ -1073,7 +1109,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   scrim.addEventListener("click", e => { if (e.target === scrim) requestCloseSheet(); });
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    if (!scrim.hidden) requestCloseSheet();   // the edit window sits on top, so it goes first
+    if (!forpanel.hidden) closeForPanel();     // the For search panel sits above everything
+    else if (!scrim.hidden) requestCloseSheet();   // the edit window sits on top, so it goes first
     else if (openPerson) closePersonCard();
   });
 
@@ -1148,34 +1185,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     });
   }
 
-  // The 🎁 button: pick who the gift is for (kids first), or add someone new.
-  function pickerSheet() {
-    const people = state.data.people;
-    if (!people.length) { personSheet(null, null, true); return; }
-    const colorOf = colorsOf(people);
-    const order = people.filter(p => p.is_child).concat(people.filter(p => !p.is_child));
-    const count = p => state.data.gifts.filter(g => g.person_id === p.id).length;
-    openSheet({
-      label: "Add a gift",
-      title: "Who's it for?",
-      focus: null,
-      onSubmit: null,
-      body: `<div class="pick-list">
-        ${order.map(p => `<button type="button" class="pick-row" data-pick="${esc(p.id)}">
-          <span class="avatar av-${colorOf[p.id]}" aria-hidden="true">${esc(initials(p.name))}</span>
-          <span>${esc(p.name)}${p.is_child ? STAR : ""} <small>· ${plural(count(p), "gift", "gifts")}</small></span>
-        </button>`).join("")}
-        <button type="button" class="pick-row pick-new" data-pick="new">
-          <span class="avatar av-0" aria-hidden="true">+</span><span>New person</span>
-        </button>
-      </div>`,
-      onReady: form => form.querySelectorAll("[data-pick]").forEach(btn => btn.addEventListener("click", () => {
-        const v = btn.dataset.pick;
-        if (v === "new") personSheet(null, null, true); else giftSheet(v, null);
-      }))
-    });
-  }
-
   function sortSheet() {
     openSheet({
       label: "Sort people",
@@ -1238,13 +1247,126 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     });
   }
 
+  // The "For" search panel: pinned to the top of the screen with the matches under it, so the
+  // keyboard never pushes it out of view. Type a few letters, tap a match, or "+ New person".
+  const fpQ = document.getElementById("fp-q"), fpList = document.getElementById("fp-list"), fpBox = forpanel.querySelector(".fp-box");
+  let fpCtx = null, fpOptions = [], fpActive = 0;
+
+  function placeForPanel() {
+    // Keep the panel at the top of what's actually visible, even if iOS shifts the page for the keyboard.
+    const vv = window.visualViewport;
+    fpBox.style.transform = vv && vv.offsetTop ? `translateY(${vv.offsetTop}px)` : "";
+  }
+  function openForPanel(ctx) {
+    fpCtx = ctx;
+    fpQ.value = "";
+    forpanel.hidden = false;
+    fpQ.focus({ preventScroll: true });   // right in the tap, so the keyboard opens
+    renderForPanel();
+    placeForPanel();
+    if (window.visualViewport) {
+      visualViewport.addEventListener("resize", placeForPanel);
+      visualViewport.addEventListener("scroll", placeForPanel);
+    }
+  }
+  function closeForPanel() {
+    if (forpanel.hidden) return;
+    forpanel.hidden = true;
+    fpCtx = null;
+    fpQ.blur();
+    if (window.visualViewport) {
+      visualViewport.removeEventListener("resize", placeForPanel);
+      visualViewport.removeEventListener("scroll", placeForPanel);
+    }
+  }
+  function renderForPanel() {
+    if (!fpCtx) return;
+    const text = fpQ.value.trim(), t = text.toLowerCase();
+    const found = !t ? [] : fpCtx.people.filter(p => {
+      const n = String(p.name).toLowerCase();
+      return n.startsWith(t) || n.split(/\s+/).some(w => w.startsWith(t));
+    }).slice(0, 6);
+    const exact = found.some(p => String(p.name).toLowerCase() === t);
+    const count = id => state.data.gifts.filter(g => g.person_id === id).length;
+    fpOptions = found.map(p => ({ id: p.id }));
+    let html = !t ? `<p class="fornone">Start typing to find someone.</p>`
+      : !found.length ? `<p class="fornone">No one called “${esc(text)}” yet.</p>` : "";
+    html += found.map((p, i) => `<button type="button" class="foropt" role="option" data-i="${i}">${esc(p.name)}${p.is_child ? STAR : ""} <small>· ${plural(count(p.id), "gift", "gifts")}</small></button>`).join("");
+    if (!exact) {
+      fpOptions.push({ id: "new" });
+      html += `<button type="button" class="foropt new" role="option" data-i="${fpOptions.length - 1}">+ New person${text ? `: “${esc(text)}”` : ""}</button>`;
+    }
+    fpActive = 0;
+    fpList.innerHTML = html;
+    fpList.querySelectorAll(".foropt").forEach((b, i) => b.classList.toggle("active", i === 0 && !!t));
+  }
+  function chooseFor(opt) {
+    const ctx = fpCtx, text = fpQ.value.trim();
+    closeForPanel();
+    if (ctx) ctx.onChoose(opt, text);
+  }
+  fpQ.addEventListener("input", renderForPanel);
+  fpQ.addEventListener("keydown", e => {
+    if (!fpOptions.length) return;
+    const moveTo = i => { fpActive = i; fpList.querySelectorAll(".foropt").forEach((b, k) => b.classList.toggle("active", k === fpActive)); };
+    if (e.key === "ArrowDown") { moveTo(Math.min(fpActive + 1, fpOptions.length - 1)); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { moveTo(Math.max(fpActive - 1, 0)); e.preventDefault(); }
+    else if (e.key === "Enter") { e.preventDefault(); if (fpQ.value.trim()) chooseFor(fpOptions[fpActive]); }
+  });
+  fpList.addEventListener("mousedown", e => e.preventDefault());   // keep the keyboard up while tapping a match
+  fpList.addEventListener("click", e => { const b = e.target.closest(".foropt"); if (b) chooseFor(fpOptions[Number(b.dataset.i)]); });
+  document.getElementById("fp-cancel").addEventListener("click", closeForPanel);
+  forpanel.addEventListener("click", e => { if (e.target === forpanel) closeForPanel(); });
+
+  // Wires the For row on a new gift (from the 🎁 button) to the search panel.
+  function bindForSearch(form, people) {
+    const btn = form.querySelector("#f-for-btn"), idBox = form.querySelector("#f-for-id"), pickEl = form.querySelector("#f-for-pick");
+    const newWrap = form.querySelector("#f-new-wrap"), newName = form.querySelector("#f-newname");
+    const open = () => openForPanel({
+      people,
+      onChoose: (opt, text) => {
+        showErr(form, "");
+        if (opt.id === "new") {
+          idBox.value = "new";
+          newName.value = text;
+          pickEl.innerHTML = `<span>+ New person</span><button type="button" data-change>Change</button>`;
+          newWrap.hidden = false;
+          if (!text) newName.focus({ preventScroll: true });
+        } else {
+          const p = state.data.people.find(x => x.id === opt.id);
+          idBox.value = opt.id;
+          pickEl.innerHTML = `<span>${esc(p ? p.name : "")}${p && p.is_child ? STAR : ""}</span><button type="button" data-change>Change</button>`;
+          newWrap.hidden = true;
+        }
+        btn.hidden = true;
+        pickEl.hidden = false;
+        form.querySelector("#f-for-wrap").scrollIntoView({ block: "nearest" });
+      }
+    });
+    btn.addEventListener("click", open);
+    pickEl.addEventListener("click", e => { if (e.target.closest("[data-change]")) open(); });
+  }
+
+  // personId null (from the 🎁 button): gift first, then pick who it's for at the bottom.
   function giftSheet(personId, g, focus) {
-    const p = state.data.people.find(x => x.id === personId);
-    if (!p) return;
+    const pick = !personId && !g;
+    const p = pick ? null : state.data.people.find(x => x.id === personId);
+    if (!pick && !p) return;
     const st = g ? statusOf(g) : "idea";
+    const order = pick ? state.data.people.filter(x => x.is_child).concat(state.data.people.filter(x => !x.is_child)) : [];
+    const forRow = !pick ? "" : `<div class="field" id="f-for-wrap"><span class="lbl" id="f-for-lbl">For</span>
+        <input type="hidden" id="f-for-id" value="">
+        <button type="button" class="forbtn" id="f-for-btn" aria-labelledby="f-for-lbl f-for-btn"><span>Who's it for?</span>${SEARCH}</button>
+        <div class="forpick" id="f-for-pick" hidden></div>
+        <div class="newperson" id="f-new-wrap" hidden>
+          <label for="f-newname">New person's name</label>
+          <input id="f-newname" type="text" autocomplete="off" autocapitalize="words" placeholder="e.g. Grandpa">
+          <label class="check"><input type="checkbox" id="f-newkid"> One of our kids ⭐</label>
+        </div>
+      </div>`;
     openSheet({
       label: g ? "Edit gift" : "New gift",
-      title: (g ? "Edit gift for " : "New gift for ") + esc(p.name),
+      title: pick ? "New gift" : (g ? "Edit gift for " : "New gift for ") + esc(p.name),
       body: `<div class="field"><label for="f-item">Gift</label>
           <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
         <div class="field"><label for="f-store">Store</label>
@@ -1257,6 +1379,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           <input id="f-exp" type="date" value="${g && g.expected ? esc(String(g.expected).slice(0, 10)) : ""}"></div>
         <div class="field"><label for="f-notes">Notes</label>
           <textarea id="f-notes" rows="3" maxlength="500" placeholder="Size, order number, where it's hidden…">${esc(g ? g.notes : "")}</textarea></div>
+        ${forRow}
         ${actions(g ? `<button type="button" class="btn danger" id="f-del">Delete</button>` : "", g ? "Save" : "Add gift")}`,
       // New gift: type its name. "add price": type the price. Opening an existing gift: no keyboard.
       focus: !g ? "#f-item" : focus === "price" ? "#f-price" : null,
@@ -1271,12 +1394,37 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         if (item.length > 200 || storeName.length > 120) { showErr(form, "That's too long. Shorten the gift or store name."); return false; }
         if (notes.length > 500) { showErr(form, "Keep notes under 500 characters."); return false; }
         if (Number.isNaN(price)) { showErr(form, "Enter the price as a dollar amount, like 24.99."); return false; }
-        return act("gift_save_gift", {
-          p_id: g ? g.id : null, p_person_id: p.id, p_item: item, p_store: storeName, p_price: price, p_status: status,
+        let forId = p ? p.id : null, forName = p ? p.name : "";
+        if (pick) {
+          const wrap = form.querySelector("#f-for-wrap");
+          const choice = form.querySelector("#f-for-id").value;
+          if (!choice) {
+            showErr(form, "Pick who it's for.");
+            wrap.scrollIntoView({ block: "center", behavior: reduceMotion() ? "auto" : "smooth" });
+            return false;
+          }
+          if (choice === "new") {
+            const nameBox = form.querySelector("#f-newname");
+            forName = nameBox.value.trim();
+            if (!forName) { showErr(form, "Type the new person's name."); nameBox.focus({ preventScroll: true }); return false; }
+            if (forName.length > 80) { showErr(form, "Keep the name under 80 characters."); return false; }
+            const r = await send("gift_save_person", { p_id: null, p_name: forName, p_budget: null, p_is_child: form.querySelector("#f-newkid").checked });
+            if (!r.ok) return false;
+            forId = r.value;
+          } else {
+            forId = choice;
+            forName = (state.data.people.find(x => x.id === choice) || {}).name || "";
+          }
+        }
+        const ok = await act("gift_save_gift", {
+          p_id: g ? g.id : null, p_person_id: forId, p_item: item, p_store: storeName, p_price: price, p_status: status,
           p_notes: notes, p_bought_by: g ? g.bought_by : null, p_expected: exp   // keep any old shopper tag as it was
         });
+        if (ok && pick) toast(`Added for ${forName}.`);
+        return ok;
       },
       onReady: form => {
+        if (pick) bindForSearch(form, order);
         const wrap = form.querySelector("#f-exp-wrap");
         const showExp = () => { wrap.hidden = picked(form, "status") !== "ordered"; };
         form.querySelectorAll('input[name="status"]').forEach(r => r.addEventListener("change", showExp));
