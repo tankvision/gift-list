@@ -331,13 +331,17 @@ html.locked, html.locked body { overflow: hidden; }
 .pick-row .avatar { width: 36px; height: 36px; font-size: 14px; }
 .pick-new { color: var(--green); }
 .optlist, .steps { display: flex; flex-direction: column; gap: 8px; }
-/* "For" chips at the bottom of a new gift from the 🎁 button */
-.forchips { display: flex; flex-wrap: wrap; gap: 8px; }
-.forchips input { position: absolute; opacity: 0; pointer-events: none; }
-.field .forchips label { min-height: 44px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); font-size: 15px; font-weight: 700; letter-spacing: 0; text-transform: none; cursor: pointer; }
-.field .forchips label.new { border-style: dashed; color: var(--green); }
-.field .forchips input:checked + label { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-.forchips input:focus-visible + label { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* "For" search at the bottom of a new gift from the 🎁 button */
+.forlist { display: flex; flex-direction: column; margin-top: 2px; border: 1px solid var(--line); border-radius: 12px; background: var(--inset); overflow: hidden; }
+.foropt { min-height: 48px; padding: 0 14px; display: flex; align-items: center; gap: 4px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font-size: 16px; font-weight: 700; }
+.foropt:last-child { border-bottom: 0; }
+.foropt small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.foropt.new { color: var(--green); }
+.foropt.active, .foropt:active { background: var(--line); }
+.fornone { margin: 0; padding: 12px 14px 4px; font-size: 14px; color: var(--muted); }
+.forpick { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 4px 4px 4px 14px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 16px; font-weight: 700; }
+.forpick button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: var(--bg); color: var(--ink); font-size: 14px; font-weight: 700; }
+.ec-body.for-open { padding-bottom: 55vh; }   /* lets the For box scroll up above the keyboard */
 .newperson { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); text-align: left; font-size: 15px; font-weight: 700; }
 .opt small { font-size: 13px; font-weight: 500; color: var(--muted); }
@@ -1218,6 +1222,88 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     });
   }
 
+  // The "For" search on a new gift from the 🎁 button: type a few letters, tap a match,
+  // or "+ New person" with whatever was typed.
+  function bindForSearch(form, people) {
+    const q = form.querySelector("#f-for-q"), list = form.querySelector("#f-for-list");
+    const idBox = form.querySelector("#f-for-id"), pickEl = form.querySelector("#f-for-pick");
+    const newWrap = form.querySelector("#f-new-wrap"), newName = form.querySelector("#f-newname");
+    const body = form.querySelector(".ec-body"), wrap = form.querySelector("#f-for-wrap");
+    const gifts = id => state.data.gifts.filter(g => g.person_id === id).length;
+    let options = [], active = 0;
+
+    const matches = text => {
+      const t = text.trim().toLowerCase();
+      if (!t) return [];
+      return people.filter(p => {
+        const n = String(p.name).toLowerCase();
+        return n.startsWith(t) || n.split(/\s+/).some(w => w.startsWith(t));
+      }).slice(0, 6);
+    };
+    function show() {
+      const text = q.value.trim();
+      const found = matches(text);
+      const exact = found.some(p => String(p.name).toLowerCase() === text.toLowerCase());
+      options = found.map(p => ({ id: p.id }));
+      let html = found.map((p, i) => `<button type="button" class="foropt" role="option" data-i="${i}">${esc(p.name)}${p.is_child ? STAR : ""} <small>· ${plural(gifts(p.id), "gift", "gifts")}</small></button>`).join("");
+      if (!exact) {
+        options.push({ id: "new" });
+        html += `<button type="button" class="foropt new" role="option" data-i="${options.length - 1}">+ New person${text ? `: “${esc(text)}”` : ""}</button>`;
+      }
+      if (text && !found.length) html = `<p class="fornone">No one called “${esc(text)}” yet.</p>` + html;
+      active = 0;
+      list.innerHTML = html;
+      list.hidden = false;
+      q.setAttribute("aria-expanded", "true");
+      mark();
+    }
+    function mark() { list.querySelectorAll(".foropt").forEach((b, i) => b.classList.toggle("active", i === active && q.value.trim() !== "")); }
+    function hideList() { list.hidden = true; q.setAttribute("aria-expanded", "false"); body.classList.remove("for-open"); }
+    function choose(opt) {
+      hideList();
+      showErr(form, "");
+      if (opt.id === "new") {
+        idBox.value = "new";
+        newName.value = q.value.trim();
+        pickEl.innerHTML = `<span>+ New person</span><button type="button" data-change>Change</button>`;
+        newWrap.hidden = false;
+        if (!newName.value) newName.focus({ preventScroll: true });
+      } else {
+        const p = state.data.people.find(x => x.id === opt.id);
+        idBox.value = opt.id;
+        pickEl.innerHTML = `<span>${esc(p ? p.name : "")}${p && p.is_child ? STAR : ""}</span><button type="button" data-change>Change</button>`;
+        newWrap.hidden = true;
+        q.blur();
+      }
+      pickEl.hidden = false;
+      q.hidden = true;
+    }
+    q.addEventListener("focus", () => {
+      // Lift the For box to the top of the window so the matches show above the keyboard.
+      body.classList.add("for-open");
+      setTimeout(() => wrap.scrollIntoView({ block: "start", behavior: reduceMotion() ? "auto" : "smooth" }), 250);
+      show();
+    });
+    q.addEventListener("input", show);
+    q.addEventListener("keydown", e => {
+      if (list.hidden || !options.length) return;
+      if (e.key === "ArrowDown") { active = Math.min(active + 1, options.length - 1); mark(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); mark(); e.preventDefault(); }
+      else if (e.key === "Enter") { if (q.value.trim()) choose(options[active]); e.preventDefault(); }
+    });
+    q.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== q && !list.contains(document.activeElement)) hideList(); }, 200));
+    list.addEventListener("mousedown", e => e.preventDefault());   // keep the keyboard up while tapping a match
+    list.addEventListener("click", e => {
+      const b = e.target.closest(".foropt");
+      if (b) choose(options[Number(b.dataset.i)]);
+    });
+    pickEl.addEventListener("click", e => {
+      if (!e.target.closest("[data-change]")) return;
+      idBox.value = ""; pickEl.hidden = true; newWrap.hidden = true; q.hidden = false;
+      q.focus({ preventScroll: true });
+    });
+  }
+
   // personId null (from the 🎁 button): gift first, then pick who it's for at the bottom.
   function giftSheet(personId, g, focus) {
     const pick = !personId && !g;
@@ -1225,11 +1311,12 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (!pick && !p) return;
     const st = g ? statusOf(g) : "idea";
     const order = pick ? state.data.people.filter(x => x.is_child).concat(state.data.people.filter(x => !x.is_child)) : [];
-    const forRow = !pick ? "" : `<div class="field" id="f-for-wrap"><span class="lbl" id="f-for-lbl">For</span>
-        <div class="forchips" role="radiogroup" aria-labelledby="f-for-lbl">
-          ${order.map(x => `<input type="radio" name="for" id="f-for-${esc(x.id)}" value="${esc(x.id)}"><label for="f-for-${esc(x.id)}">${esc(x.name)}${x.is_child ? " ⭐" : ""}</label>`).join("")}
-          <input type="radio" name="for" id="f-for-new" value="new"><label for="f-for-new" class="new">+ New</label>
-        </div>
+    const forRow = !pick ? "" : `<div class="field" id="f-for-wrap"><label for="f-for-q">For</label>
+        <input type="hidden" id="f-for-id" value="">
+        <div class="forpick" id="f-for-pick" hidden></div>
+        <input id="f-for-q" type="text" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"
+          placeholder="Start typing a name" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-for-list">
+        <div class="forlist" id="f-for-list" role="listbox" aria-label="Matching people" hidden></div>
         <div class="newperson" id="f-new-wrap" hidden>
           <label for="f-newname">New person's name</label>
           <input id="f-newname" type="text" autocomplete="off" autocapitalize="words" placeholder="e.g. Grandpa">
@@ -1269,9 +1356,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         let forId = p ? p.id : null, forName = p ? p.name : "";
         if (pick) {
           const wrap = form.querySelector("#f-for-wrap");
-          const choice = picked(form, "for");
+          const choice = form.querySelector("#f-for-id").value;
           if (!choice) {
-            showErr(form, "Pick who it's for.");
+            showErr(form, form.querySelector("#f-for-q").value.trim() ? "Tap a name from the list, or + New person." : "Pick who it's for.");
             wrap.scrollIntoView({ block: "center", behavior: reduceMotion() ? "auto" : "smooth" });
             return false;
           }
@@ -1296,11 +1383,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         return ok;
       },
       onReady: form => {
-        const newWrap = form.querySelector("#f-new-wrap");
-        if (newWrap) form.querySelectorAll('input[name="for"]').forEach(r => r.addEventListener("change", () => {
-          newWrap.hidden = picked(form, "for") !== "new";
-          if (!newWrap.hidden) form.querySelector("#f-newname").focus({ preventScroll: true });
-        }));
+        if (pick) bindForSearch(form, order);
         const wrap = form.querySelector("#f-exp-wrap");
         const showExp = () => { wrap.hidden = picked(form, "status") !== "ordered"; };
         form.querySelectorAll('input[name="status"]').forEach(r => r.addEventListener("change", showExp));
