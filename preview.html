@@ -98,10 +98,6 @@ h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; fon
 .mix-bar > span { display: block; height: 100%; }
 .mix-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 13px; font-weight: 600; }
 .c-idea { color: var(--soft); } .c-ordered { color: var(--ordered-fg); } .c-bought { color: var(--bought-fg); } .c-wrapped { color: var(--pink); } .c-given { color: var(--gold); }
-.shoppers { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 8px 0 0; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; font-size: 14px; color: var(--muted); }
-.shoppers .who-spent { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.shoppers b { color: var(--ink); font-weight: 700; }
-.shoppers .edit { color: var(--muted); flex-shrink: 0; display: flex; }
 
 /* Kids side by side */
 .kids { display: flex; flex-direction: column; }
@@ -129,11 +125,16 @@ h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; fon
 .row:last-child { border-bottom: 0; }
 .row.open { padding-top: 14px; }
 .row-top { display: flex; align-items: center; gap: 12px; }
-.prow { flex-direction: row; align-items: center; gap: 12px; width: 100%; min-height: 64px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; color: inherit; }
-.prow:last-child { border-bottom: 0; }
-.prow:active { background: var(--inset); }
-.amt .sub { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+/* Person row: the whole row opens the card; the Set budget pill is its own button on top */
+.prow { position: relative; flex-direction: row; align-items: center; gap: 12px; min-height: 64px; }
+.prow-hit { position: absolute; inset: 0; z-index: 0; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; }
+.prow-hit:active { background: var(--inset); }
+.prow-hit:focus-visible { outline-offset: -3px; }
+.prow > :not(.prow-hit) { position: relative; z-index: 1; pointer-events: none; }
+.prow > .budget-pill { pointer-events: auto; }
+.budget-pill { flex-shrink: 0; min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--gold); background: var(--given-bg); color: var(--gold); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .go { flex-shrink: 0; display: flex; color: var(--muted); margin-right: -4px; }
+.star { margin-left: 5px; font-size: 0.8em; vertical-align: 1px; }
 .avatar, .av-st { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
 .av-st i { width: 12px; height: 12px; border-radius: 50%; display: block; }
 .av-0 { background: var(--bought-bg); color: var(--bought-fg); }
@@ -208,6 +209,8 @@ h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; fon
 .pc-money .setlink { font-size: 14px; min-height: 36px; }
 .pc-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding: 14px max(18px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); }
 .pc-body .addgift { margin-top: 4px; min-height: 48px; }
+.nobudget { width: 100%; min-height: 48px; padding: 0 14px; border: 1.5px dashed var(--gold); border-radius: 12px; background: var(--given-bg); color: var(--gold); font-size: 15px; font-weight: 700; }
+.nobudget span { text-decoration: underline; text-underline-offset: 3px; }
 html.locked, html.locked body { overflow: hidden; }
 
 /* Passcode screen */
@@ -220,14 +223,34 @@ html.locked, html.locked body { overflow: hidden; }
 .gate p { margin: 0; text-align: center; color: var(--muted); }
 .gate form { display: flex; flex-direction: column; gap: 12px; }
 
-/* Sheets and fields */
-.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+/* Edit windows: pop-up cards that match the person card */
+.scrim { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0); transition: background .28s ease; }
+.scrim.in { background: var(--scrim); }
 .sheet {
-  background: var(--card); border: 1px solid var(--line); border-bottom: 0; width: 100%; max-width: 520px; border-radius: 18px 18px 0 0;
-  padding: 20px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
-  display: flex; flex-direction: column; gap: 14px; max-height: 92%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  width: 100%; max-width: 560px; max-height: 92%;
+  background: var(--card); border: 1px solid var(--line); border-bottom: 0; border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
 }
-@media (min-width: 640px) { .scrim { align-items: center; } .sheet { border-radius: 18px; border-bottom: 1px solid var(--line); } }
+.sheet:focus { outline: none; }
+.scrim.in .sheet { transform: translateY(0); }
+.sheet.dragging { transition: none; }
+.sheet.stacked { max-height: 78%; }   /* opened from a person's card: let the card peek out above */
+.ec-head { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 2px max(18px, env(safe-area-inset-right, 0px)) 8px max(18px, env(safe-area-inset-left, 0px)); }
+.ec-head h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.15; overflow-wrap: anywhere; }
+.ec-body {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+}
+.discard {
+  flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 12px max(18px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line); background: var(--inset);
+}
+.discard { justify-content: flex-end; }
+.discard p { flex: 1 1 100%; margin: 0; font-weight: 700; color: var(--ink); }
 .sheet h3 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 22px; }
 .sheet p { margin: 0; color: var(--soft); font-size: 15px; }
 .sheet p.small { font-size: 13px; color: var(--muted); }
@@ -275,7 +298,7 @@ html.locked, html.locked body { overflow: hidden; }
 .preview b { color: var(--ink); }
 
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
-@media (prefers-reduced-motion: reduce) { .cane > span, .mini, .mini.on, .pscrim, .pcard { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .cane > span, .mini, .mini.on, .pscrim, .pcard, .scrim, .sheet { transition: none !important; } }
 </style>
 </head>
 <body>
@@ -302,6 +325,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const GO = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>';
   const XICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
   const PENCIL_L = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+  const STAR = '<span class="star" role="img" aria-label="kid">⭐</span>';
   const POLL_MS = 10000;
   const BASE = String(SUPABASE_URL).trim().replace(/\/+$/, "");
   const CONFIGURED = /^https:\/\//.test(BASE) && !/PASTE_/.test(SUPABASE_KEY);
@@ -314,14 +338,14 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
   const state = {
     code: store.get("giftCode"),
-    data: null,           // { people, gifts, overall_budget, shopper1, shopper2 }
+    data: null,           // { people, gifts, overall_budget }
     lastJson: "",
     syncedAt: null,
     offline: false,
     view: store.get("giftView") === "status" ? "status" : "person",
-    kidsOpen: store.get("giftKidsOpen") === "1",
-    me: Number(store.get("giftMe")) === 1 || Number(store.get("giftMe")) === 2 ? Number(store.get("giftMe")) : null
+    kidsOpen: store.get("giftKidsOpen") === "1"
   };
+  store.del("giftMe");   // left over from the shopper feature, which has been removed
   try { const c = JSON.parse(store.get("giftCache") || "null"); if (c && c.data && c.v === 2) { state.data = c.data; state.lastJson = JSON.stringify(c.data); state.syncedAt = c.at; } } catch (_) {}
 
   const revealed = new Set();
@@ -353,10 +377,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const counts = g => statusOf(g) !== "idea";   // ordered and later count as money spent
   const spentOf = gs => gs.reduce((a, g) => a + (counts(g) && g.price != null ? g.price : 0), 0);
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  const shopperName = n => {
-    if (!state.data) return n === 1 ? "Shopper 1" : "Shopper 2";
-    return (n === 1 ? state.data.shopper1 : state.data.shopper2) || (n === 1 ? "Shopper 1" : "Shopper 2");
-  };
   const initials = name => {
     const t = String(name || "?").trim();
     const words = t.split(/\s+/).filter(Boolean);
@@ -410,9 +430,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         id: g.id, person_id: g.person_id, item: g.item, store: g.store || "", price: num(g.price), status: g.status,
         notes: g.notes || "", bought_by: num(g.bought_by), expected: g.expected || null
       })),
-      overall_budget: num(d.overall_budget),
-      shopper1: d.shopper1 || null,
-      shopper2: d.shopper2 || null
+      overall_budget: num(d.overall_budget)
     };
   }
   function applyData(d) {
@@ -451,7 +469,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   function lock(msg) {
     state.code = null; state.data = null; state.lastJson = "";
     store.del("giftCode"); store.del("giftCache");
-    revealed.clear(); closeSheet(); closePersonCard(true);
+    revealed.clear(); closeSheet(true); closePersonCard(true);
     renderGate(msg || "");
   }
 
@@ -520,7 +538,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (g.store) sub.push(esc(g.store));
     if (g.price != null) sub.push(`<span class="price num">${money(g.price)}</span>`);
     else sub.push(`<button class="addprice" data-act="edit-gift" data-id="${gid}" data-focus="price">add price</button>`);
-    if (st !== "idea" && (g.bought_by === 1 || g.bought_by === 2)) sub.push(`by ${esc(shopperName(g.bought_by))}`);
     const arr = arrivalHtml(g); if (arr) sub.push(arr);
     const next = LABEL[STATUSES[(STATUSES.indexOf(st) + 1) % STATUSES.length]].toLowerCase();
     return `<div class="gift">
@@ -543,14 +560,15 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       const id = esc(p.id), name = esc(p.name);
       const bar = budget != null && budget > 0
         ? `<span class="thin" aria-hidden="true"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></span>` : "";
-      return `<button class="row prow" data-act="person" data-id="${id}">
+      return `<div class="row prow">
+        <button class="prow-hit" data-act="person" data-id="${id}" aria-label="Open ${name}'s gifts"></button>
         <span class="avatar av-${i % 4}" aria-hidden="true">${esc(initials(p.name))}</span>
-        <span class="who"><span class="who-name">${name}${p.is_child ? `<span class="kid">KID</span>` : ""} ${personMeta(gs, spent, budget)}</span>${bar}</span>
+        <span class="who"><span class="who-name">${name}${p.is_child ? STAR : ""} ${personMeta(gs, spent, budget)}</span>${bar}</span>
         ${budget != null
           ? `<span class="amt num ${over ? "over" : ""}">${money(spent)}<small> / ${money(budget)}</small></span>`
-          : `<span class="amt num">${money(spent)}<span class="sub">no budget</span></span>`}
+          : `${spent > 0 ? `<span class="amt num">${money(spent)}</span>` : ""}<button class="budget-pill" data-act="set-budget" data-id="${id}" aria-label="Set a budget for ${name}">Set budget</button>`}
         <span class="go" aria-hidden="true">${GO}</span>
-      </button>`;
+      </div>`;
     }).join("");
   }
 
@@ -608,21 +626,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     </section>`;
   }
 
-  function shoppersLine(gifts) {
-    const named = state.data.shopper1 || state.data.shopper2;
-    if (!named) return `<button class="shoppers" data-act="shoppers"><span>Track who bought what</span><span class="setlink" style="min-height:0">Add shopper names</span></button>`;
-    const tot = { 1: 0, 2: 0, none: 0 };
-    gifts.forEach(g => { if (counts(g) && g.price != null) { const k = g.bought_by === 1 || g.bought_by === 2 ? g.bought_by : "none"; tot[k] += g.price; } });
-    return `<button class="shoppers num" data-act="shoppers" aria-label="Spending by shopper. Edit shopper names">
-      <span class="who-spent">
-        <span>${esc(shopperName(1))} <b>${money(tot[1])}</b></span>
-        <span>${esc(shopperName(2))} <b>${money(tot[2])}</b></span>
-        ${tot.none > 0 ? `<span>Not tagged <b>${money(tot.none)}</b></span>` : ""}
-      </span>
-      <span class="edit">${PENCIL}</span>
-    </button>`;
-  }
-
   function render() {
     if (!CONFIGURED) return renderSetup();
     if (!state.code) return renderGate("");
@@ -658,7 +661,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           <div class="mix-bar" role="img" aria-label="Gifts by status">${STATUSES.filter(s => n[s]).map(s => `<span style="flex:${n[s]};background:${SEG[s]}"></span>`).join("")}</div>
           <div class="mix-legend num">${STATUSES.map(s => `<span class="c-${s}">${LABEL[s]} ${n[s]}</span>`).join("")}</div>
         </div>
-        ${shoppersLine(gifts)}
       </section>
       ${kidsCard(people, gifts)}
       <div class="switch" role="group" aria-label="Group gifts by">
@@ -706,7 +708,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       case "set-budget": personSheet(id, "budget"); break;
       case "add-person": personSheet(null); break;
       case "budget": budgetSheet(); break;
-      case "shoppers": shoppersSheet(); break;
       case "lock": lock(""); break;
       case "export": exportBackup(); break;
       case "restore": restoreSheet(); break;
@@ -729,12 +730,11 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (!g) return;
     const from = statusOf(g);
     const next = STATUSES[(STATUSES.indexOf(from) + 1) % STATUSES.length];
-    const by = next !== "idea" && state.me ? state.me : null;
     busy.add(id);
     if (state.view === "status" && revealed.has("s:" + from)) revealed.add("s:" + next);
-    g.status = next; if (g.bought_by == null && by) g.bought_by = by;
+    g.status = next;
     state.lastJson = ""; render();   // show it right away; the next server read replaces it either way
-    await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: by });
+    await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: null });
     busy.delete(id);
   }
 
@@ -757,7 +757,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     const sheet = pscrim.querySelector(".pcard");
     void sheet.offsetHeight;          // start the slide-up from below the screen
     pscrim.classList.add("in");
-    bindSwipe(sheet);
+    bindSwipe(sheet, sheet.querySelector(".pc-body"), () => { closePersonCard(); return true; });
     const x = pscrim.querySelector('[data-act="close-person"]');
     if (x) x.focus({ preventScroll: true });
   }
@@ -792,15 +792,17 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     const id = esc(p.id), name = esc(p.name);
     const line = budget != null
       ? `<span><b>${money(spent)}</b> of ${money(budget)}</span><span>·</span>${over ? `<span class="over">${money(spent - budget)} over</span>` : `<span>${money(budget - spent)} left</span>`}`
-      : `<span><b>${money(spent)}</b> spent</span><span>·</span><button class="setlink" data-act="set-budget" data-id="${id}">Set budget</button>`;
+      : `<span><b>${money(spent)}</b> spent</span>`;
     head.innerHTML = `
       <div class="pc-top">
-        <h3 id="pc-title">${name}${p.is_child ? `<span class="kid">KID</span>` : ""}</h3>
+        <h3 id="pc-title">${name}${p.is_child ? STAR : ""}</h3>
         <button class="iconbtn" data-act="edit-person" data-id="${id}" aria-label="Edit ${name}">${PENCIL_L}</button>
         <button class="iconbtn" data-act="close-person" aria-label="Close">${XICON}</button>
       </div>
       <div class="pc-money num">${line}<span>·</span><span>${plural(gs.length, "gift", "gifts")}</span></div>
-      ${budget != null && budget > 0 ? `<div class="cane" role="img" aria-label="${money(spent)} of ${money(budget)} spent"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></div>` : ""}`;
+      ${budget == null
+        ? `<button class="nobudget" data-act="set-budget" data-id="${id}">No budget yet · <span>Set budget</span></button>`
+        : budget > 0 ? `<div class="cane" role="img" aria-label="${money(spent)} of ${money(budget)} spent"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></div>` : ""}`;
     const top = body.scrollTop;
     body.innerHTML = `${gs.length ? gs.map(g => giftCard(g)).join("") : `<p class="none">No gifts yet.</p>`}
       <button class="addgift" data-act="add-gift" data-id="${id}">+ Add a gift for ${name}</button>`;
@@ -808,8 +810,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
 
   // Swipe the card down to close it: from the top area, or from the list when it's scrolled to the top.
-  function bindSwipe(sheet) {
-    const body = sheet.querySelector(".pc-body");
+  // Shared by the person card and every edit window. onClose returns false when the close was
+  // held back (unsaved changes), and the card springs back into place.
+  function bindSwipe(sheet, body, onClose) {
     let y0 = null, dy = 0, dragging = false, t0 = 0;
     sheet.addEventListener("touchstart", e => {
       if (e.touches.length !== 1) { y0 = null; return; }
@@ -835,7 +838,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       dragging = false;
       sheet.classList.remove("dragging");
       const flick = dy > 50 && Date.now() - t0 < 250;
-      if (dy > 120 || flick) closePersonCard(); else sheet.style.transform = "";
+      if ((dy > 120 || flick) && onClose() !== false) return;
+      sheet.style.transform = "";
     };
     sheet.addEventListener("touchend", end);
     sheet.addEventListener("touchcancel", end);
@@ -868,11 +872,30 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }, { passive: true });
   mini.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }));
 
-  /* ---------- sheets ---------- */
-  let lastFocus = null;
-  function openSheet(label, html, onSubmit, onReady, focusSel) {
+  /* ---------- edit windows ---------- */
+  // Each edit window is a pop-up card like the person card: grab handle, ✕, slides up and down,
+  // closes with a swipe down, the ✕ or a tap outside. If anything was changed and not saved,
+  // closing asks "Discard changes?" first.
+  let lastFocus = null, sheetSnap = "", sheetToken = 0;
+  const formState = form => JSON.stringify([...form.elements]
+    .filter(el => (el.id || el.name) && !["file", "button", "submit"].includes(el.type))
+    .map(el => (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value));
+
+  // focus: a selector for the box that should get the keyboard, or null for no keyboard
+  function openSheet({ label, title, body, onSubmit, onReady, focus }) {
+    sheetToken++;
     lastFocus = document.activeElement;
-    scrim.innerHTML = `<form class="sheet" role="dialog" aria-modal="true" aria-label="${esc(label)}" novalidate>${html}</form>`;
+    scrim.classList.remove("in");
+    scrim.innerHTML = `<form class="sheet${openPerson ? " stacked" : ""}" role="dialog" aria-modal="true" aria-label="${esc(label)}" novalidate tabindex="-1">
+      <div class="grab" aria-hidden="true"><span></span></div>
+      <div class="ec-head"><h3>${title}</h3><button type="button" class="iconbtn" data-close aria-label="Close">${XICON}</button></div>
+      <div class="ec-body">${body}</div>
+      <div class="discard" hidden>
+        <p>Discard changes?</p>
+        <button type="button" class="btn" data-keep>Keep editing</button>
+        <button type="button" class="btn danger armed" data-discard>Discard</button>
+      </div>
+    </form>`;
     scrim.hidden = false;
     const form = scrim.querySelector("form");
     form.addEventListener("submit", async ev => {
@@ -884,20 +907,49 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       save.disabled = false;
       if (ok) closeSheet();
     });
-    form.querySelectorAll("[data-close]").forEach(x => x.addEventListener("click", closeSheet));
+    form.querySelector("[data-close]").addEventListener("click", requestCloseSheet);
+    form.querySelector("[data-keep]").addEventListener("click", () => {
+      form.querySelector(".discard").hidden = true;
+      form.focus({ preventScroll: true });
+    });
+    form.querySelector("[data-discard]").addEventListener("click", () => closeSheet());
     if (onReady) onReady(form);
-    const first = focusSel === false ? null : ((focusSel && form.querySelector(focusSel)) || form.querySelector('input[type="text"], input[inputmode]'));
-    if (first) first.focus();
+    sheetSnap = formState(form);
+    const target = focus ? form.querySelector(focus) : null;
+    if (target) target.focus({ preventScroll: true }); else form.focus({ preventScroll: true });
+    void form.offsetHeight;           // start the slide-up from below the screen
+    scrim.classList.add("in");
+    bindSwipe(form, form.querySelector(".ec-body"), requestCloseSheet);
   }
-  function closeSheet() {
+
+  // Close if nothing changed; otherwise show "Discard changes?" and keep the window open.
+  function requestCloseSheet() {
+    const form = scrim.querySelector("form");
+    if (!form || scrim.hidden) return true;
+    if (formState(form) !== sheetSnap) {
+      const bar = form.querySelector(".discard");
+      bar.hidden = false;
+      bar.querySelector("[data-keep]").focus({ preventScroll: true });
+      return false;
+    }
+    closeSheet();
+    return true;
+  }
+
+  function closeSheet(instant) {
     if (scrim.hidden) return;
-    scrim.hidden = true; scrim.innerHTML = "";
-    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    const token = ++sheetToken;
+    const form = scrim.querySelector("form");
+    scrim.classList.remove("in");
+    if (form) { form.classList.remove("dragging"); form.style.transform = "translateY(100%)"; }
+    const done = () => { if (token !== sheetToken) return; scrim.hidden = true; scrim.innerHTML = ""; };
+    if (instant || reduceMotion()) done(); else setTimeout(done, 300);
+    if (!instant && lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
   }
-  scrim.addEventListener("click", e => { if (e.target === scrim) closeSheet(); });
+  scrim.addEventListener("click", e => { if (e.target === scrim) requestCloseSheet(); });
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    if (!scrim.hidden) closeSheet();          // the edit sheet sits on top, so it closes first
+    if (!scrim.hidden) requestCloseSheet();   // the edit window sits on top, so it goes first
     else if (openPerson) closePersonCard();
   });
 
@@ -915,7 +967,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
   const showErr = (form, msg) => { form.querySelector(".err").textContent = msg; };
   const actions = (del, saveLabel) => `<div class="err" aria-live="polite"></div>
-    <div class="row-actions">${del}<div class="right"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${saveLabel}</button></div></div>`;
+    <div class="row-actions">${del}<div class="right"><button type="submit" class="btn primary">${saveLabel}</button></div></div>`;
   const segHtml = (name, opts, picked, cols) => `<div class="seg${cols === "flow" ? " flow" : ""}" role="radiogroup" style="--cols:${cols === "flow" ? 4 : cols}">
     ${opts.map(o => `<input type="radio" name="${name}" id="f-${name}-${o.v}" value="${o.v}" ${String(o.v) === String(picked) ? "checked" : ""}><label for="f-${name}-${o.v}" class="${o.cls}">${esc(o.label)}</label>`).join("")}
   </div>`;
@@ -923,67 +975,36 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
   function budgetSheet() {
     const cur = state.data.overall_budget;
-    openSheet("Overall budget", `
-      <h3>Overall Christmas budget</h3>
-      <div class="field"><label for="f-total">Total for all gifts</label>
-        <input id="f-total" inputmode="decimal" placeholder="$0" value="${cur != null ? cur : ""}"></div>
-      ${actions("", "Save budget")}`,
-      async form => {
+    openSheet({
+      label: "Overall budget",
+      title: "Overall Christmas budget",
+      body: `<div class="field"><label for="f-total">Total for all gifts</label>
+          <input id="f-total" inputmode="decimal" placeholder="$0" value="${cur != null ? cur : ""}"></div>
+        ${actions("", "Save budget")}`,
+      focus: "#f-total",
+      onSubmit: async form => {
         const v = parseMoney(form.querySelector("#f-total").value);
         if (Number.isNaN(v)) { showErr(form, "Enter a dollar amount, like 500."); return false; }
         return act("gift_set_budget", { p_amount: v });
-      });
-  }
-
-  function shoppersSheet() {
-    const d = state.data;
-    openSheet("Shoppers", `
-      <h3>Who's shopping</h3>
-      <p class="small">These names show on each gift so you can tell who bought what, and the summary adds up what each of you has spent.</p>
-      <div class="field"><label for="f-s1">First shopper</label>
-        <input id="f-s1" type="text" autocomplete="off" autocapitalize="words" value="${esc(d.shopper1 || "")}" placeholder="e.g. JMar"></div>
-      <div class="field"><label for="f-s2">Second shopper</label>
-        <input id="f-s2" type="text" autocomplete="off" autocapitalize="words" value="${esc(d.shopper2 || "")}" placeholder="Their name"></div>
-      <div class="field"><span class="lbl" id="f-me-lbl">This phone belongs to</span>
-        <div id="f-me-wrap">${segHtml("me", [
-          { v: 1, label: d.shopper1 || "First", cls: "plain" },
-          { v: 2, label: d.shopper2 || "Second", cls: "plain" },
-          { v: 0, label: "Not set", cls: "plain" }], state.me || 0, 3)}</div>
-        <p class="small">When you mark a gift Ordered or Bought on this phone, it's tagged with this name automatically.</p></div>
-      ${actions("", "Save")}`,
-      async form => {
-        const s1 = form.querySelector("#f-s1").value.trim().slice(0, 40);
-        const s2 = form.querySelector("#f-s2").value.trim().slice(0, 40);
-        const me = Number(picked(form, "me")) || 0;
-        state.me = me === 1 || me === 2 ? me : null;
-        if (state.me) store.set("giftMe", String(state.me)); else store.del("giftMe");
-        if (s1 === (d.shopper1 || "") && s2 === (d.shopper2 || "")) { render(); return true; }
-        return act("gift_set_shoppers", { p_name1: s1, p_name2: s2 });
-      },
-      form => {
-        // Keep the phone-owner buttons in step with the names as they're typed
-        const sync = () => {
-          const l1 = form.querySelector('label[for="f-me-1"]'), l2 = form.querySelector('label[for="f-me-2"]');
-          l1.textContent = form.querySelector("#f-s1").value.trim() || "First";
-          l2.textContent = form.querySelector("#f-s2").value.trim() || "Second";
-        };
-        form.querySelector("#f-s1").addEventListener("input", sync);
-        form.querySelector("#f-s2").addEventListener("input", sync);
-      });
+      }
+    });
   }
 
   function personSheet(id, focus) {
     const p = id ? state.data.people.find(x => x.id === id) : null;
     const n = p ? state.data.gifts.filter(g => g.person_id === p.id).length : 0;
-    openSheet(p ? "Edit person" : "Add a person", `
-      <h3>${p ? "Edit " + esc(p.name) : "Add a person"}</h3>
-      <div class="field"><label for="f-name">Name</label>
-        <input id="f-name" type="text" autocomplete="off" autocapitalize="words" value="${esc(p ? p.name : "")}" placeholder="e.g. Grandpa"></div>
-      <div class="field"><label for="f-budget">Budget for them (optional)</label>
-        <input id="f-budget" inputmode="decimal" placeholder="$0" value="${p && p.budget != null ? p.budget : ""}"></div>
-      <label class="check"><input type="checkbox" id="f-kid" ${p && p.is_child ? "checked" : ""}> One of our kids</label>
-      ${actions(p ? `<button type="button" class="btn danger" id="f-del">Remove</button>` : "", p ? "Save" : "Add person")}`,
-      async form => {
+    openSheet({
+      label: p ? "Edit person" : "Add a person",
+      title: p ? "Edit " + esc(p.name) : "Add a person",
+      body: `<div class="field"><label for="f-name">Name</label>
+          <input id="f-name" type="text" autocomplete="off" autocapitalize="words" value="${esc(p ? p.name : "")}" placeholder="e.g. Grandpa"></div>
+        <div class="field"><label for="f-budget">Budget for them (optional)</label>
+          <input id="f-budget" inputmode="decimal" placeholder="$0" value="${p && p.budget != null ? p.budget : ""}"></div>
+        <label class="check"><input type="checkbox" id="f-kid" ${p && p.is_child ? "checked" : ""}> One of our kids ⭐</label>
+        ${actions(p ? `<button type="button" class="btn danger" id="f-del">Remove</button>` : "", p ? "Save" : "Add person")}`,
+      // New person: type the name. "Set budget": type the budget. Editing: no keyboard.
+      focus: !p ? "#f-name" : focus === "budget" ? "#f-budget" : null,
+      onSubmit: async form => {
         const name = form.querySelector("#f-name").value.trim();
         const budget = parseMoney(form.querySelector("#f-budget").value);
         const kid = form.querySelector("#f-kid").checked;
@@ -992,48 +1013,44 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         if (Number.isNaN(budget)) { showErr(form, "Enter the budget as a dollar amount, like 75."); return false; }
         return act("gift_save_person", { p_id: p ? p.id : null, p_name: name, p_budget: budget, p_is_child: kid });
       },
-      form => {
+      onReady: form => {
         const del = form.querySelector("#f-del");
         if (del) armButton(del, n ? `Remove ${p.name} and ${plural(n, "gift", "gifts")}?` : `Remove ${p.name}?`, async () => {
           revealed.delete("p:" + p.id);
           return act("gift_delete_person", { p_id: p.id });
         });
-      },
-      focus === "budget" ? "#f-budget" : null);
+      }
+    });
   }
 
   function giftSheet(personId, g, focus) {
     const p = state.data.people.find(x => x.id === personId);
     if (!p) return;
     const st = g ? statusOf(g) : "idea";
-    const by = g ? (g.bought_by || 0) : (state.me || 0);
-    openSheet(g ? "Edit gift" : "New gift", `
-      <h3>${g ? "Edit gift for " : "New gift for "}${esc(p.name)}</h3>
-      <div class="field"><label for="f-item">Gift</label>
-        <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
-      <div class="field"><label for="f-store">Store</label>
-        <input id="f-store" type="text" autocomplete="off" autocapitalize="words" value="${esc(g ? g.store : "")}" placeholder="e.g. Target"></div>
-      <div class="field"><label for="f-price">Price paid</label>
-        <input id="f-price" inputmode="decimal" placeholder="$0" value="${g && g.price != null ? g.price : ""}"></div>
-      <div class="field"><span class="lbl">Status</span>
-        ${segHtml("status", STATUSES.map(s => ({ v: s, label: LABEL[s], cls: "st-" + s })), st, "flow")}</div>
-      <div class="field" id="f-exp-wrap"><label for="f-exp">Expected delivery</label>
-        <input id="f-exp" type="date" value="${g && g.expected ? esc(String(g.expected).slice(0, 10)) : ""}"></div>
-      <div class="field"><span class="lbl">Bought by</span>
-        ${segHtml("by", [
-          { v: 1, label: shopperName(1), cls: "plain" },
-          { v: 2, label: shopperName(2), cls: "plain" },
-          { v: 0, label: "Not set", cls: "plain" }], by, 3)}</div>
-      <div class="field"><label for="f-notes">Notes</label>
-        <textarea id="f-notes" rows="3" maxlength="500" placeholder="Size, order number, where it's hidden…">${esc(g ? g.notes : "")}</textarea></div>
-      ${actions(g ? `<button type="button" class="btn danger" id="f-del">Delete</button>` : "", g ? "Save" : "Add gift")}`,
-      async form => {
+    openSheet({
+      label: g ? "Edit gift" : "New gift",
+      title: (g ? "Edit gift for " : "New gift for ") + esc(p.name),
+      body: `<div class="field"><label for="f-item">Gift</label>
+          <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
+        <div class="field"><label for="f-store">Store</label>
+          <input id="f-store" type="text" autocomplete="off" autocapitalize="words" value="${esc(g ? g.store : "")}" placeholder="e.g. Target"></div>
+        <div class="field"><label for="f-price">Price paid</label>
+          <input id="f-price" inputmode="decimal" placeholder="$0" value="${g && g.price != null ? g.price : ""}"></div>
+        <div class="field"><span class="lbl">Status</span>
+          ${segHtml("status", STATUSES.map(s => ({ v: s, label: LABEL[s], cls: "st-" + s })), st, "flow")}</div>
+        <div class="field" id="f-exp-wrap"><label for="f-exp">Expected delivery</label>
+          <input id="f-exp" type="date" value="${g && g.expected ? esc(String(g.expected).slice(0, 10)) : ""}"></div>
+        <div class="field"><label for="f-notes">Notes</label>
+          <textarea id="f-notes" rows="3" maxlength="500" placeholder="Size, order number, where it's hidden…">${esc(g ? g.notes : "")}</textarea></div>
+        ${actions(g ? `<button type="button" class="btn danger" id="f-del">Delete</button>` : "", g ? "Save" : "Add gift")}`,
+      // New gift: type its name. "add price": type the price. Opening an existing gift: no keyboard.
+      focus: !g ? "#f-item" : focus === "price" ? "#f-price" : null,
+      onSubmit: async form => {
         const item = form.querySelector("#f-item").value.trim();
         const storeName = form.querySelector("#f-store").value.trim();
         const price = parseMoney(form.querySelector("#f-price").value);
         const status = picked(form, "status") || "idea";
         const notes = form.querySelector("#f-notes").value.trim();
-        const who = Number(picked(form, "by")) || null;
         const exp = status === "ordered" ? (form.querySelector("#f-exp").value || null) : null;
         if (!item) { showErr(form, "Say what the gift is."); return false; }
         if (item.length > 200 || storeName.length > 120) { showErr(form, "That's too long. Shorten the gift or store name."); return false; }
@@ -1041,40 +1058,37 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         if (Number.isNaN(price)) { showErr(form, "Enter the price as a dollar amount, like 24.99."); return false; }
         return act("gift_save_gift", {
           p_id: g ? g.id : null, p_person_id: p.id, p_item: item, p_store: storeName, p_price: price, p_status: status,
-          p_notes: notes, p_bought_by: who, p_expected: exp
+          p_notes: notes, p_bought_by: g ? g.bought_by : null, p_expected: exp   // keep any old shopper tag as it was
         });
       },
-      form => {
+      onReady: form => {
         const wrap = form.querySelector("#f-exp-wrap");
         const showExp = () => { wrap.hidden = picked(form, "status") !== "ordered"; };
         form.querySelectorAll('input[name="status"]').forEach(r => r.addEventListener("change", showExp));
         showExp();
         const del = form.querySelector("#f-del");
         if (del) armButton(del, "Delete this gift?", () => act("gift_delete_gift", { p_id: g.id }));
-      },
-      focus === "price" ? "#f-price" : null);
+      }
+    });
   }
 
   /* ---------- export ---------- */
-  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Bought by", "Expected delivery", "Notes"];
+  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Expected delivery", "Notes"];
   function csvCell(v) {
     let s = v == null ? "" : String(v);
     if (/^[=+\-@]/.test(s)) s = "'" + s;   // keep spreadsheet apps from treating text as a formula
     return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   }
   function buildCsv(data) {
-    const nm = n => n === 1 ? (data.shopper1 || "Shopper 1") : n === 2 ? (data.shopper2 || "Shopper 2") : "";
     const rows = [COLS];
     for (const p of data.people) {
       const gs = data.gifts.filter(g => g.person_id === p.id);
       const kid = p.is_child ? "Yes" : "";
-      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", "", ""]);
-      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], nm(g.bought_by), g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
+      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", ""]);
+      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
     }
     rows.push([]);
     rows.push(["Overall budget", data.overall_budget]);
-    rows.push(["Shopper 1", data.shopper1 || ""]);
-    rows.push(["Shopper 2", data.shopper2 || ""]);
     rows.push(["Exported", new Date().toLocaleString()]);
     return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
   }
@@ -1167,19 +1181,20 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   function restoreSheet() {
     const curPeople = state.data.people.length, curGifts = state.data.gifts.length;
     let parsed = null;
-    openSheet("Restore from a backup", `
-      <h3>Restore from a backup</h3>
-      <p>Pick a backup file you saved with <b>Export a backup</b>. Restoring replaces the whole list, on both phones, with what's in the file.</p>
-      <div class="filepick btn wide">Choose backup file<input id="f-file" type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" aria-label="Choose backup file"></div>
-      <div class="preview" id="f-preview" hidden></div>
-      <p class="small">Your list right now: ${plural(curPeople, "person", "people")} and ${plural(curGifts, "gift", "gifts")}. If you might want it back, export a backup of it first.</p>
-      <div class="err" aria-live="polite"></div>
-      <div class="row-actions"><div class="right">
-        <button type="button" class="btn" data-close>Cancel</button>
-        <button type="button" class="btn danger" id="f-restore" disabled>Replace the list</button>
-      </div></div>`,
-      null,
-      form => {
+    openSheet({
+      label: "Restore from a backup",
+      title: "Restore from a backup",
+      body: `<p>Pick a backup file you saved with <b>Export a backup</b>. Restoring replaces the whole list, on both phones, with what's in the file.</p>
+        <div class="filepick btn wide">Choose backup file<input id="f-file" type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" aria-label="Choose backup file"></div>
+        <div class="preview" id="f-preview" hidden></div>
+        <p class="small">Your list right now: ${plural(curPeople, "person", "people")} and ${plural(curGifts, "gift", "gifts")}. If you might want it back, export a backup of it first.</p>
+        <div class="err" aria-live="polite"></div>
+        <div class="row-actions"><div class="right">
+          <button type="button" class="btn danger" id="f-restore" disabled>Replace the list</button>
+        </div></div>`,
+      focus: null,
+      onSubmit: null,
+      onReady: form => {
         const input = form.querySelector("#f-file");
         const prev = form.querySelector("#f-preview");
         const btn = form.querySelector("#f-restore");
@@ -1203,8 +1218,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           if (ok) { revealed.clear(); toast("List restored from the backup."); }
           return ok;
         });
-      },
-      false);
+      }
+    });
   }
 
   /* ---------- start ---------- */
