@@ -39,8 +39,8 @@ html { -webkit-text-size-adjust: 100%; background: var(--bg); }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.4;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);   /* room for the floating gift button */
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   -webkit-tap-highlight-color: transparent;
@@ -52,13 +52,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, .seg label:fo
 .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 .num { font-variant-numeric: tabular-nums; }
 
-.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -0.01em; }
-.ring { flex-shrink: 0; width: 72px; height: 72px; border-radius: 50%; background: repeating-linear-gradient(135deg, var(--berry) 0 8px, var(--ink) 8px 16px); display: flex; align-items: center; justify-content: center; }
-.ring-in { width: 58px; height: 58px; border-radius: 50%; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
-.ring-n { font-family: var(--display); font-weight: 800; font-size: 22px; }
-.ring-n.long { font-size: 18px; }
-.ring-l { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--pink); margin-top: 2px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: -4px; }
+h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; font-size: clamp(22px, 6.6vw, 28px); line-height: 1.05; letter-spacing: -0.01em; white-space: nowrap; }
+.ring { flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%; background: repeating-linear-gradient(135deg, var(--berry) 0 6px, var(--ink) 6px 12px); display: flex; align-items: center; justify-content: center; }
+.ring-in { width: 45px; height: 45px; border-radius: 50%; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.ring-n { font-family: var(--display); font-weight: 800; font-size: 18px; }
+.ring-n.long { font-size: 15px; }
+.ring-l { font-size: 8px; font-weight: 700; letter-spacing: 0.06em; color: var(--pink); margin-top: 1px; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
 .stats { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
@@ -70,25 +70,55 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 .stat-v.gold { color: var(--gold); }
 .stat-btn { background: none; border: 0; padding: 0; text-align: left; color: inherit; min-height: 44px; border-radius: 8px; }
 .stat-btn .stat-l { display: inline-flex; align-items: center; gap: 4px; }
+.stat-note { font-size: 12px; font-weight: 700; line-height: 1.25; color: var(--gold); }
+.head-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.privbtn { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--soft); }
+.privbtn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+/* Privacy mode: blur amounts and gift details everywhere; people's names stay readable */
+html.private .stat-v, html.private .mv, html.private .amt, html.private .g-item, html.private .g-sub, html.private .g-note,
+html.private .kids-sum, html.private .kid-amt, html.private .kids-note, html.private .pc-money, html.private .who-name small {
+  filter: blur(7px); -webkit-user-select: none; user-select: none;
+}
+.sortbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -6px 2px -8px; font-size: 13px; color: var(--muted); }
+.sortbtn { min-height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--soft); font-size: 13px; font-weight: 700; }
 .setlink { background: none; border: 0; padding: 0; min-height: 44px; text-align: left; color: var(--gold); font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .cane { height: 12px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .cane > span { display: block; height: 100%; border-radius: 999px; background: repeating-linear-gradient(135deg, var(--berry) 0 6px, var(--berry-2) 6px 12px); transition: width .3s ease; }
 .cane > span.over { background: var(--gold); }
+
+/* Slim bar that pins to the top once the big summary card scrolls away */
+.mini {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 15;
+  background: var(--card); border-bottom: 1px solid var(--line); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  transform: translateY(-100%); opacity: 0; visibility: hidden;
+  transition: transform .22s ease, opacity .22s ease, visibility 0s linear .22s;
+}
+.mini.on { transform: none; opacity: 1; visibility: visible; transition: transform .22s ease, opacity .22s ease; }
+.mini-in { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 560px; margin: 0 auto; padding: 0; background: none; border: 0; text-align: left; color: inherit; }
+.mini-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 6px; align-items: end; }
+.m { display: flex; flex-direction: column; min-width: 0; }
+.ml { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mv { font-family: var(--display); font-weight: 800; font-size: clamp(14px, 4.2vw, 17px); line-height: 1.15; white-space: nowrap; }
+.mv.pink { color: var(--pink); }
+.mv.gold { color: var(--gold); }
+.m.days { text-align: right; }
+.mini .cane { display: block; height: 6px; }
 .mix { display: flex; flex-direction: column; gap: 8px; }
 .mix-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--line); }
 .mix-bar > span { display: block; height: 100%; }
 .mix-legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 13px; font-weight: 600; }
 .c-idea { color: var(--soft); } .c-ordered { color: var(--ordered-fg); } .c-bought { color: var(--bought-fg); } .c-wrapped { color: var(--pink); } .c-given { color: var(--gold); }
-.shoppers { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 8px 0 0; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; font-size: 14px; color: var(--muted); }
-.shoppers .who-spent { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.shoppers b { color: var(--ink); font-weight: 700; }
-.shoppers .edit { color: var(--muted); flex-shrink: 0; display: flex; }
 
 /* Kids side by side */
-.kids { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
-.kids-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.kids-h h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 18px; }
-.kids-h span { font-size: 13px; color: var(--muted); }
+.kids { display: flex; flex-direction: column; }
+.kids-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 52px; padding: 8px 8px 8px 16px; background: none; border: 0; border-radius: 18px; text-align: left; color: inherit; }
+.kids-t { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
+.kids-name { font-family: var(--display); font-weight: 700; font-size: 18px; }
+.kids-sub { font-size: 13px; color: var(--muted); }
+.kids-sum { font-size: 14px; color: var(--soft); }
+.chev { width: 36px; height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.kids-rows { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 12px; }
 .kid-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
 .kid-name { font-weight: 700; overflow-wrap: anywhere; }
 .kid-name small { font-weight: 500; font-size: 13px; color: var(--muted); }
@@ -101,11 +131,21 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 .switch button { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: var(--soft); font-size: 14px; font-weight: 600; }
 .switch button[aria-pressed="true"] { background: var(--berry); color: #FFFFFF; font-weight: 700; }
 
-.list { display: flex; flex-direction: column; }
+.list { display: flex; flex-direction: column; overflow: hidden; }
 .row { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--line); }
 .row:last-child { border-bottom: 0; }
 .row.open { padding-top: 14px; }
 .row-top { display: flex; align-items: center; gap: 12px; }
+/* Person row: the whole row opens the card; the Set budget pill is its own button on top */
+.prow { position: relative; flex-direction: row; align-items: center; gap: 12px; min-height: 64px; }
+.prow-hit { position: absolute; inset: 0; z-index: 0; width: 100%; padding: 0; border: 0; border-radius: 0; background: none; }
+.prow-hit:active { background: var(--inset); }
+.prow-hit:focus-visible { outline-offset: -3px; }
+.prow > :not(.prow-hit) { position: relative; z-index: 1; pointer-events: none; }
+.prow > .budget-pill { pointer-events: auto; }
+.budget-pill { flex-shrink: 0; min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--gold); background: var(--given-bg); color: var(--gold); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.go { flex-shrink: 0; display: flex; color: var(--muted); margin-right: -4px; }
+.star { margin-left: 5px; font-size: 0.8em; vertical-align: 1px; }
 .avatar, .av-st { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
 .av-st i { width: 12px; height: 12px; border-radius: 50%; display: block; }
 .av-0 { background: var(--bought-bg); color: var(--bought-fg); }
@@ -117,7 +157,7 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 .who-name small { font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; }
 .who-name small.over { font-weight: 700; color: var(--gold); }
 .kid { display: inline-block; vertical-align: 2px; margin-left: 4px; padding: 1px 6px; border-radius: 6px; background: var(--ordered-bg); color: var(--ordered-fg); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
-.thin { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.thin { display: block; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .thin > span { display: block; height: 100%; border-radius: 999px; background: var(--green); }
 .thin > span.over { background: var(--gold); }
 .amt { text-align: right; font-size: 15px; font-weight: 700; white-space: nowrap; }
@@ -155,23 +195,73 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
 .empty strong { display: block; color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 20px; margin-bottom: 4px; }
 
+/* Person pop-up card */
+.pscrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0); transition: background .28s ease; }
+.pscrim.in { background: var(--scrim); }
+.pcard {
+  width: 100%; max-width: 560px; height: 88%;
+  background: var(--card); border: 1px solid var(--line); border-bottom: 0; border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+.pscrim.in .pcard { transform: translateY(0); }
+.pcard.dragging { transition: none; }
+.grab { flex-shrink: 0; display: flex; justify-content: center; padding: 8px 0 2px; }
+.grab span { width: 40px; height: 5px; border-radius: 999px; background: var(--dash); }
+.pc-head { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 4px max(18px, env(safe-area-inset-right, 0px)) 14px max(18px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.pc-top { display: flex; align-items: center; gap: 6px; }
+.pc-top h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; overflow-wrap: anywhere; }
+.pc-top .kid { vertical-align: 5px; }
+.iconbtn { width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: var(--inset); color: var(--soft); }
+.pc-money { display: flex; align-items: center; flex-wrap: wrap; gap: 0 6px; min-height: 28px; font-size: 15px; color: var(--muted); }
+.pc-money b { color: var(--ink); font-size: 18px; }
+.pc-money .over { color: var(--gold); font-weight: 700; }
+.pc-money .setlink { font-size: 14px; min-height: 36px; }
+.pc-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding: 14px max(18px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); }
+.pc-body .addgift { margin-top: 4px; min-height: 48px; }
+.nobudget { width: 100%; min-height: 48px; padding: 0 14px; border: 1.5px dashed var(--gold); border-radius: 12px; background: var(--given-bg); color: var(--gold); font-size: 15px; font-weight: 700; }
+.nobudget span { text-decoration: underline; text-underline-offset: 3px; }
+html.locked, html.locked body { overflow: hidden; }
+
 /* Passcode screen */
 .gate { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
-.gate .ring { width: 96px; height: 96px; align-self: center; }
+.gate .ring { width: 96px; height: 96px; align-self: center; background: repeating-linear-gradient(135deg, var(--berry) 0 8px, var(--ink) 8px 16px); }
 .gate .ring-in { width: 78px; height: 78px; }
 .gate .ring-n { font-size: 30px; }
-.gate h1 { text-align: center; }
+.gate .ring-l { font-size: 10px; margin-top: 2px; }
+.gate h1 { text-align: center; font-size: 32px; white-space: normal; }
 .gate p { margin: 0; text-align: center; color: var(--muted); }
 .gate form { display: flex; flex-direction: column; gap: 12px; }
 
-/* Sheets and fields */
-.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+/* Edit windows: pop-up cards that match the person card */
+.scrim { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, 0); transition: background .28s ease; }
+.scrim.in { background: var(--scrim); }
 .sheet {
-  background: var(--card); border: 1px solid var(--line); border-bottom: 0; width: 100%; max-width: 520px; border-radius: 18px 18px 0 0;
-  padding: 20px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
-  display: flex; flex-direction: column; gap: 14px; max-height: 92%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  width: 100%; max-width: 560px; max-height: 92%;
+  background: var(--card); border: 1px solid var(--line); border-bottom: 0; border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
 }
-@media (min-width: 640px) { .scrim { align-items: center; } .sheet { border-radius: 18px; border-bottom: 1px solid var(--line); } }
+.sheet:focus { outline: none; }
+.scrim.in .sheet { transform: translateY(0); }
+.sheet.dragging { transition: none; }
+.sheet.stacked { max-height: 78%; }   /* opened from a person's card: let the card peek out above */
+.ec-head { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 2px max(18px, env(safe-area-inset-right, 0px)) 8px max(18px, env(safe-area-inset-left, 0px)); }
+.ec-head h3 { flex: 1; min-width: 0; margin: 0; font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.15; overflow-wrap: anywhere; }
+.ec-body {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+}
+.discard {
+  flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 12px max(18px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line); background: var(--inset);
+}
+.discard { justify-content: flex-end; }
+.discard p { flex: 1 1 100%; margin: 0; font-weight: 700; color: var(--ink); }
 .sheet h3 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 22px; }
 .sheet p { margin: 0; color: var(--soft); font-size: 15px; }
 .sheet p.small { font-size: 13px; color: var(--muted); }
@@ -218,12 +308,43 @@ h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 32px; 
 .preview { background: var(--inset); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 14px; color: var(--soft); display: flex; flex-direction: column; gap: 4px; }
 .preview b { color: var(--ink); }
 
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 30; max-width: calc(100% - 32px); }
-@media (prefers-reduced-motion: reduce) { .cane > span { transition: none; } }
+/* Floating add-a-gift button and the Undo bar beside it */
+.fab {
+  position: fixed; z-index: 16; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  width: 62px; height: 62px; border-radius: 50%; border: 0; background: var(--berry); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center; font-size: 30px; line-height: 1;
+}
+.fab:active { transform: scale(0.94); }
+.undo {
+  position: fixed; z-index: 25; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(max(16px, env(safe-area-inset-right, 0px)) + 76px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 19px); max-width: 480px; min-height: 56px;
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px; border-radius: 14px;
+  background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+}
+.undo span { flex: 1; min-width: 0; }
+.undo button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--bg); color: var(--gold); font-size: 15px; font-weight: 800; }
+/* "Who's it for?" picker and option lists */
+.pick-list { display: flex; flex-direction: column; }
+.pick-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 2px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font-size: 16px; font-weight: 700; }
+.pick-row:last-child { border-bottom: 0; }
+.pick-row small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.pick-row .avatar { width: 36px; height: 36px; font-size: 14px; }
+.pick-new { color: var(--green); }
+.optlist, .steps { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); text-align: left; font-size: 15px; font-weight: 700; }
+.opt small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.opt[aria-pressed="true"] { border-color: var(--green); background: var(--bought-bg); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
+@media (prefers-reduced-motion: reduce) { .cane > span, .mini, .mini.on, .pscrim, .pcard, .scrim, .sheet { transition: none !important; } }
 </style>
 </head>
 <body>
 <main class="wrap" id="app"></main>
+<div class="mini" id="mini"></div>
+<div class="pscrim" id="pscrim" hidden></div>
+<button class="fab" id="fab" type="button" aria-label="Add a gift" hidden>🎁</button>
+<div class="undo" id="undo" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
@@ -240,6 +361,18 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const PENCIL = '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
   const EYE = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
   const UP = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"></path></svg>';
+  const DOWN = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>';
+  const GO = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>';
+  const XICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
+  const PENCIL_L = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+  const STAR = '<span class="star" role="img" aria-label="kid">⭐</span>';
+  const EYE_OFF = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="M2 2l20 20"></path></svg>';
+  const SORTS = [
+    ["added", "Order added", "The order people were added"],
+    ["kids", "Kids first", "⭐ kids at the top, then everyone else"],
+    ["far", "Furthest from budget", "Most left to spend first; no budget at the end"],
+    ["az", "A to Z", "Alphabetical by name"]
+  ];
   const POLL_MS = 10000;
   const BASE = String(SUPABASE_URL).trim().replace(/\/+$/, "");
   const CONFIGURED = /^https:\/\//.test(BASE) && !/PASTE_/.test(SUPABASE_KEY);
@@ -252,13 +385,16 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
   const state = {
     code: store.get("giftCode"),
-    data: null,           // { people, gifts, overall_budget, shopper1, shopper2 }
+    data: null,           // { people, gifts, overall_budget }
     lastJson: "",
     syncedAt: null,
     offline: false,
     view: store.get("giftView") === "status" ? "status" : "person",
-    me: Number(store.get("giftMe")) === 1 || Number(store.get("giftMe")) === 2 ? Number(store.get("giftMe")) : null
+    kidsOpen: store.get("giftKidsOpen") === "1",
+    sort: SORTS.some(s => s[0] === store.get("giftSort")) ? store.get("giftSort") : "added",
+    priv: false             // privacy mode always starts off
   };
+  store.del("giftMe");   // left over from the shopper feature, which has been removed
   try { const c = JSON.parse(store.get("giftCache") || "null"); if (c && c.data && c.v === 2) { state.data = c.data; state.lastJson = JSON.stringify(c.data); state.syncedAt = c.at; } } catch (_) {}
 
   const revealed = new Set();
@@ -266,6 +402,12 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const app = document.getElementById("app");
   const scrim = document.getElementById("scrim");
   const toastEl = document.getElementById("toast");
+  const mini = document.getElementById("mini");
+  const pscrim = document.getElementById("pscrim");
+  const fab = document.getElementById("fab");
+  const undoEl = document.getElementById("undo");
+  let openPerson = null;    // id of the person whose card is open
+  let pLastFocus = null;
 
   /* ---------- helpers ---------- */
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -286,10 +428,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const counts = g => statusOf(g) !== "idea";   // ordered and later count as money spent
   const spentOf = gs => gs.reduce((a, g) => a + (counts(g) && g.price != null ? g.price : 0), 0);
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  const shopperName = n => {
-    if (!state.data) return n === 1 ? "Shopper 1" : "Shopper 2";
-    return (n === 1 ? state.data.shopper1 : state.data.shopper2) || (n === 1 ? "Shopper 1" : "Shopper 2");
-  };
   const initials = name => {
     const t = String(name || "?").trim();
     const words = t.split(/\s+/).filter(Boolean);
@@ -343,9 +481,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         id: g.id, person_id: g.person_id, item: g.item, store: g.store || "", price: num(g.price), status: g.status,
         notes: g.notes || "", bought_by: num(g.bought_by), expected: g.expected || null
       })),
-      overall_budget: num(d.overall_budget),
-      shopper1: d.shopper1 || null,
-      shopper2: d.shopper2 || null
+      overall_budget: num(d.overall_budget)
     };
   }
   function applyData(d) {
@@ -370,23 +506,52 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       .finally(() => { refreshing = null; });
     return refreshing;
   }
-  async function act(fn, args) {
-    try { await rpc(fn, Object.assign({ p_code: state.code }, args)); await refresh(); return true; }
+  // send: one save call, returning { ok, value }. act: the same, then reload the list.
+  async function send(fn, args) {
+    try { return { ok: true, value: await rpc(fn, Object.assign({ p_code: state.code }, args)) }; }
     catch (e) {
-      if (e.code === "passcode") { lock("The passcode has changed. Enter the new one."); return false; }
+      if (e.code === "passcode") { lock("The passcode has changed. Enter the new one."); return { ok: false }; }
       if (e.code === "network") toast("Couldn't save. Check your connection and try again.");
       else if (e.status === 404) toast("The app needs its database update. Run update-1.sql in Supabase.");
       else toast("Couldn't save that change. Try again in a moment.");
       refresh();
-      return false;
+      return { ok: false };
     }
+  }
+  async function act(fn, args) {
+    const r = await send(fn, args);
+    if (r.ok) await refresh();
+    return r.ok;
   }
   function lock(msg) {
     state.code = null; state.data = null; state.lastJson = "";
     store.del("giftCode"); store.del("giftCache");
-    revealed.clear(); closeSheet();
+    state.priv = false; document.documentElement.classList.remove("private");
+    revealed.clear(); closeSheet(true); closePersonCard(true); hideUndo();
     renderGate(msg || "");
   }
+
+  /* ---------- undo ---------- */
+  // After a status tap, a deleted gift or a removed person, an Undo button shows for 6 seconds.
+  let undoFn = null, undoTimer = null;
+  function offerUndo(msg, fn) {
+    undoFn = fn;
+    undoEl.innerHTML = `<span>${esc(msg)}</span><button type="button">Undo</button>`;
+    undoEl.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 6000);
+  }
+  function hideUndo() { clearTimeout(undoTimer); undoFn = null; undoEl.hidden = true; }
+  undoEl.addEventListener("click", async e => {
+    if (!e.target.closest("button") || !undoFn) return;
+    const fn = undoFn;
+    hideUndo();
+    if (await fn()) toast("Undone");
+  });
+  const giftArgs = (g, personId) => ({
+    p_person_id: personId, p_item: g.item, p_store: g.store, p_price: g.price, p_status: statusOf(g),
+    p_notes: g.notes, p_bought_by: g.bought_by, p_expected: g.expected ? String(g.expected).slice(0, 10) : null
+  });
 
   /* ---------- screens ---------- */
   function renderSetup() {
@@ -395,6 +560,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
 
   function renderGate(msg) {
+    mini.classList.remove("on");
+    fab.hidden = true;
     app.innerHTML = `<div class="gate">
       ${ringHtml(daysToChristmas())}
       <h1>Christmas Gift List</h1>
@@ -452,7 +619,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (g.store) sub.push(esc(g.store));
     if (g.price != null) sub.push(`<span class="price num">${money(g.price)}</span>`);
     else sub.push(`<button class="addprice" data-act="edit-gift" data-id="${gid}" data-focus="price">add price</button>`);
-    if (st !== "idea" && (g.bought_by === 1 || g.bought_by === 2)) sub.push(`by ${esc(shopperName(g.bought_by))}`);
     const arr = arrivalHtml(g); if (arr) sub.push(arr);
     const next = LABEL[STATUSES[(STATUSES.indexOf(st) + 1) % STATUSES.length]].toLowerCase();
     return `<div class="gift">
@@ -465,33 +631,38 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     </div>`;
   }
 
-  function personRows(people, gifts) {
+  // Avatar colors follow the order people were added, so they don't change when the list is re-sorted.
+  const colorsOf = people => Object.fromEntries(people.map((p, i) => [p.id, i % 4]));
+
+  function sortPeople(people, gifts) {
+    const list = people.slice();   // already in the order added
+    if (state.sort === "kids") return list.sort((a, b) => (b.is_child ? 1 : 0) - (a.is_child ? 1 : 0));
+    if (state.sort === "az") return list.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
+    if (state.sort === "far") {
+      const left = p => p.budget == null ? -Infinity : p.budget - spentOf(gifts.filter(g => g.person_id === p.id));
+      return list.sort((a, b) => { const la = left(a), lb = left(b); return la === lb ? 0 : lb > la ? 1 : -1; });
+    }
+    return list;
+  }
+
+  function personRows(people, gifts, colorOf) {
     if (!people.length) return `<div class="empty"><strong>No one on the list yet</strong>Add the first person below, then add their gifts.</div>`;
-    return people.map((p, i) => {
+    return people.map(p => {
       const gs = gifts.filter(g => g.person_id === p.id);
       const spent = spentOf(gs);
       const budget = p.budget;
       const over = budget != null && spent > budget;
-      const key = "p:" + p.id;
-      const open = revealed.has(key);
       const id = esc(p.id), name = esc(p.name);
       const bar = budget != null && budget > 0
-        ? `<div class="thin" role="img" aria-label="${money(spent)} of ${money(budget)} spent"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></div>` : "";
-      return `<div class="row ${open ? "open" : ""}">
-        <div class="row-top">
-          <span class="avatar av-${i % 4}" aria-hidden="true">${esc(initials(p.name))}</span>
-          <button class="who" data-act="edit-person" data-id="${id}" aria-label="${name}${p.is_child ? ", kid" : ""}, edit"><span class="who-name">${name}${p.is_child ? `<span class="kid">KID</span>` : ""} ${personMeta(gs, spent, budget)}</span>${bar}</button>
-          ${budget != null
-            ? `<div class="amt num ${over ? "over" : ""}">${money(spent)}<small> / ${money(budget)}</small></div>`
-            : `<button class="setbudget" data-act="set-budget" data-id="${id}">Set budget</button>`}
-          ${open
-            ? `<button class="collapse" data-act="toggle" data-key="${esc(key)}" aria-expanded="true" aria-label="Hide ${name}'s gifts">${UP}</button>`
-            : `<button class="eye" data-act="toggle" data-key="${esc(key)}" aria-expanded="false" aria-label="Peek at ${name}'s gifts">${EYE}</button>`}
-        </div>
-        ${open ? `<div class="under">
-          ${gs.length ? gs.map(g => giftCard(g)).join("") : `<p class="none">No gifts yet.</p>`}
-          <button class="addgift" data-act="add-gift" data-id="${id}">+ Add a gift</button>
-        </div>` : ""}
+        ? `<span class="thin" aria-hidden="true"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></span>` : "";
+      return `<div class="row prow">
+        <button class="prow-hit" data-act="person" data-id="${id}" aria-label="Open ${name}'s gifts"></button>
+        <span class="avatar av-${colorOf[p.id]}" aria-hidden="true">${esc(initials(p.name))}</span>
+        <span class="who"><span class="who-name">${name}${p.is_child ? STAR : ""} ${personMeta(gs, spent, budget)}</span>${bar}</span>
+        ${budget != null
+          ? `<span class="amt num ${over ? "over" : ""}">${money(spent)}<small> / ${money(budget)}</small></span>`
+          : `${spent > 0 ? `<span class="amt num">${money(spent)}</span>` : ""}<button class="budget-pill" data-act="set-budget" data-id="${id}" aria-label="Set a budget for ${name}">Set budget</button>`}
+        <span class="go" aria-hidden="true">${GO}</span>
       </div>`;
     }).join("");
   }
@@ -525,61 +696,68 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       return { k, n: gs.length, spent: spentOf(gs) };
     });
     const max = Math.max(...rows.map(r => r.spent), 0);
-    let note = "";
+    const min = Math.min(...rows.map(r => r.spent));
+    let gap = "";
     if (rows.length > 1 && max > 0) {
-      const min = Math.min(...rows.map(r => r.spent));
-      const low = rows.filter(r => r.spent === min).map(r => r.k.name);
-      const top = rows.find(r => r.spent === max).k.name;
-      note = max - min < 0.005 ? "All even so far." : `${esc(low.join(" and "))} ${low.length > 1 ? "are" : "is"} ${money(max - min)} behind ${esc(top)}.`;
+      const low = rows.filter(r => r.spent === min).map(r => esc(r.k.name));
+      const top = esc(rows.find(r => r.spent === max).k.name);
+      gap = max - min < 0.005 ? "All even so far" : `${low.join(" and ")} ${low.length > 1 ? "are" : "is"} ${money(max - min)} behind ${top}`;
     }
+    const summary = max <= 0 ? "Nothing spent yet" : rows.length === 1 ? `${esc(rows[0].k.name)} ${money(rows[0].spent)}` : gap;
+    const open = state.kidsOpen;
     return `<section class="card kids" aria-label="Kids side by side">
-      <div class="kids-h"><h2>Kids</h2><span>spent so far</span></div>
-      ${rows.map(r => `<div class="kid-row">
-        <span class="kid-name">${esc(r.k.name)} <small>· ${plural(r.n, "gift", "gifts")}</small></span>
-        <span class="kid-amt num">${money(r.spent)}</span>
-        <div class="kid-bar" aria-hidden="true"><span style="width:${max > 0 ? (r.spent / max * 100).toFixed(1) : 0}%"></span></div>
-      </div>`).join("")}
-      ${note ? `<p class="kids-note">${note}</p>` : ""}
+      <button class="kids-h" data-act="kids" aria-expanded="${open}" aria-controls="kids-rows">
+        <span class="kids-t"><span class="kids-name">Kids</span>${open ? `<span class="kids-sub">spent so far</span>` : `<span class="kids-sum num">· ${summary}</span>`}</span>
+        <span class="chev" aria-hidden="true">${open ? UP : DOWN}</span>
+      </button>
+      ${open ? `<div class="kids-rows" id="kids-rows">
+        ${rows.map(r => `<div class="kid-row">
+          <span class="kid-name">${esc(r.k.name)} <small>· ${plural(r.n, "gift", "gifts")}</small></span>
+          <span class="kid-amt num">${money(r.spent)}</span>
+          <div class="kid-bar" aria-hidden="true"><span style="width:${max > 0 ? (r.spent / max * 100).toFixed(1) : 0}%"></span></div>
+        </div>`).join("")}
+        ${gap ? `<p class="kids-note">${gap}.</p>` : ""}
+      </div>` : ""}
     </section>`;
-  }
-
-  function shoppersLine(gifts) {
-    const named = state.data.shopper1 || state.data.shopper2;
-    if (!named) return `<button class="shoppers" data-act="shoppers"><span>Track who bought what</span><span class="setlink" style="min-height:0">Add shopper names</span></button>`;
-    const tot = { 1: 0, 2: 0, none: 0 };
-    gifts.forEach(g => { if (counts(g) && g.price != null) { const k = g.bought_by === 1 || g.bought_by === 2 ? g.bought_by : "none"; tot[k] += g.price; } });
-    return `<button class="shoppers num" data-act="shoppers" aria-label="Spending by shopper. Edit shopper names">
-      <span class="who-spent">
-        <span>${esc(shopperName(1))} <b>${money(tot[1])}</b></span>
-        <span>${esc(shopperName(2))} <b>${money(tot[2])}</b></span>
-        ${tot.none > 0 ? `<span>Not tagged <b>${money(tot.none)}</b></span>` : ""}
-      </span>
-      <span class="edit">${PENCIL}</span>
-    </button>`;
   }
 
   function render() {
     if (!CONFIGURED) return renderSetup();
     if (!state.code) return renderGate("");
     if (!state.data) {
+      mini.classList.remove("on");
+      fab.hidden = true;
       app.innerHTML = `<div class="gate">${ringHtml(daysToChristmas())}<p>${state.offline ? "Can't reach the list. Check your connection; it will retry on its own." : "Loading the list…"}</p></div>`;
       return;
     }
-    const { people, gifts: allGifts, overall_budget: budget } = state.data;
+    const { people, gifts: allGifts } = state.data;
     const byId = Object.fromEntries(people.map(p => [p.id, p]));
     const gifts = allGifts.filter(g => byId[g.person_id]);
     const spent = spentOf(gifts);
+    // The overall budget is the total of everyone's own budgets.
+    const withBudget = people.filter(p => p.budget != null);
+    const budget = withBudget.length ? Math.round(withBudget.reduce((a, p) => a + p.budget, 0) * 100) / 100 : null;
+    const noBudget = people.length - withBudget.length;
     const over = budget != null && spent > budget;
     const n = {}; STATUSES.forEach(s => n[s] = 0);
     gifts.forEach(g => n[statusOf(g)]++);
+    const colorOf = colorsOf(people);
+    const sortLabel = (SORTS.find(s => s[0] === state.sort) || SORTS[0])[1];
 
-    const budgetStat = budget != null
-      ? `<button class="stat stat-btn" data-act="budget" aria-label="Budget ${money(budget)}, change"><span class="stat-l">Budget ${PENCIL}</span><span class="stat-v num">${big(budget)}</span></button>`
-      : `<div class="stat"><span class="stat-l">Budget</span><button class="setlink" data-act="budget">Set budget</button></div>`;
+    const budgetStat = `<button class="stat stat-btn" data-act="budget-info" aria-label="Budget ${budget == null ? "not set" : money(budget)}. It's the total of everyone's budgets${noBudget && people.length ? `; ${plural(noBudget, "person doesn't", "people don't")} have one yet` : ""}.">
+        <span class="stat-l">Budget</span>
+        <span class="stat-v num">${budget == null ? "—" : big(budget)}</span>
+        ${noBudget && people.length ? `<span class="stat-note">+ ${noBudget} without a budget</span>` : ""}
+      </button>`;
     const syncedTime = state.syncedAt ? new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
 
     app.innerHTML = `
-      <header class="head"><h1>Christmas<br>Gift List</h1>${ringHtml(daysToChristmas())}</header>
+      <header class="head"><h1>Christmas Gift List</h1>
+        <div class="head-r">
+          <button class="privbtn" data-act="privacy" aria-pressed="${state.priv}" aria-label="${state.priv ? "Show amounts and gifts" : "Hide amounts and gifts"}">${state.priv ? EYE_OFF : EYE}</button>
+          ${ringHtml(daysToChristmas())}
+        </div>
+      </header>
       ${state.offline ? `<div class="banner" role="status">Offline. Showing the list as of ${esc(syncedTime)}. Changes need a connection.</div>` : ""}
       <section class="card stats" aria-label="Spending summary">
         <div class="stat-grid">
@@ -592,29 +770,35 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           <div class="mix-bar" role="img" aria-label="Gifts by status">${STATUSES.filter(s => n[s]).map(s => `<span style="flex:${n[s]};background:${SEG[s]}"></span>`).join("")}</div>
           <div class="mix-legend num">${STATUSES.map(s => `<span class="c-${s}">${LABEL[s]} ${n[s]}</span>`).join("")}</div>
         </div>
-        ${shoppersLine(gifts)}
       </section>
       ${kidsCard(people, gifts)}
       <div class="switch" role="group" aria-label="Group gifts by">
         <button data-act="view" data-view="person" aria-pressed="${state.view === "person"}">By person</button>
         <button data-act="view" data-view="status" aria-pressed="${state.view === "status"}">By status</button>
       </div>
+      ${state.view === "person" && people.length > 1 ? `<div class="sortbar"><span>${plural(people.length, "person", "people")}</span>
+        <button class="sortbtn" data-act="sort" aria-label="Sort people. Now: ${sortLabel}">Sort: ${sortLabel} ${DOWN}</button></div>` : ""}
       <section class="card list" aria-label="${state.view === "person" ? "Gifts by person" : "Gifts by status"}">
-        ${state.view === "person" ? personRows(people, gifts) : statusRows(gifts, byId)}
+        ${state.view === "person" ? personRows(sortPeople(people, gifts), gifts, colorOf) : statusRows(gifts, byId)}
       </section>
       <button class="addperson" data-act="add-person">+ Add a person</button>
       <div class="foot">
-        <p class="foot-note">Tap a status to move it along: Idea → Ordered → Bought → Wrapped → Given.<br>Tap a name or gift to edit it.</p>
+        <p class="foot-note">Tap a name to see their gifts. Tap a gift to edit it.<br>Tap a status to move it along: Idea → Ordered → Bought → Wrapped → Given.</p>
         <div class="foot-actions">
           <button class="lock" data-act="export">Export a backup</button>
           <button class="lock" data-act="restore">Restore from a backup</button>
+          <button class="lock" data-act="new-year">Start a new year</button>
           <button class="lock" data-act="lock">Lock on this phone</button>
         </div>
       </div>`;
+    fab.hidden = false;
+    renderMini(spent, budget, over);
+    if (openPerson) fillPersonCard();
+    requestAnimationFrame(updateMini);
   }
 
   /* ---------- interactions ---------- */
-  app.addEventListener("click", e => {
+  function onAct(e) {
     const b = e.target.closest("[data-act]");
     if (!b || b.disabled || !state.data) return;
     const id = b.dataset.id;
@@ -636,13 +820,31 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       case "edit-person": personSheet(id); break;
       case "set-budget": personSheet(id, "budget"); break;
       case "add-person": personSheet(null); break;
-      case "budget": budgetSheet(); break;
-      case "shoppers": shoppersSheet(); break;
+      case "budget-info": toast("Budget is the total of everyone's budgets. Set them on each person."); break;
+      case "privacy":
+        state.priv = !state.priv;
+        document.documentElement.classList.toggle("private", state.priv);
+        render();
+        { const t = app.querySelector('[data-act="privacy"]'); if (t) t.focus({ preventScroll: true }); }
+        break;
+      case "sort": sortSheet(); break;
+      case "new-year": newYearSheet(); break;
       case "lock": lock(""); break;
       case "export": exportBackup(); break;
       case "restore": restoreSheet(); break;
+      case "person": openPersonCard(id); break;
+      case "close-person": closePersonCard(); break;
+      case "kids":
+        state.kidsOpen = !state.kidsOpen;
+        store.set("giftKidsOpen", state.kidsOpen ? "1" : "0");
+        render();
+        { const t = app.querySelector('[data-act="kids"]'); if (t) t.focus({ preventScroll: true }); }
+        break;
     }
-  });
+  }
+  app.addEventListener("click", onAct);
+  fab.addEventListener("click", () => { if (state.data) pickerSheet(); });
+  pscrim.addEventListener("click", e => { if (e.target === pscrim) { closePersonCard(); return; } onAct(e); });
 
   async function cycle(id) {
     if (busy.has(id)) return;
@@ -650,20 +852,174 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (!g) return;
     const from = statusOf(g);
     const next = STATUSES[(STATUSES.indexOf(from) + 1) % STATUSES.length];
-    const by = next !== "idea" && state.me ? state.me : null;
     busy.add(id);
     if (state.view === "status" && revealed.has("s:" + from)) revealed.add("s:" + next);
-    g.status = next; if (g.bought_by == null && by) g.bought_by = by;
+    g.status = next;
     state.lastJson = ""; render();   // show it right away; the next server read replaces it either way
-    await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: by });
+    const ok = await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: null });
     busy.delete(id);
+    if (ok) offerUndo(`Marked ${LABEL[next]}`, () => act("gift_set_status", { p_id: id, p_status: from, p_bought_by: null }));
   }
 
-  /* ---------- sheets ---------- */
-  let lastFocus = null;
-  function openSheet(label, html, onSubmit, onReady, focusSel) {
-    lastFocus = document.activeElement;
-    scrim.innerHTML = `<form class="sheet" role="dialog" aria-modal="true" aria-label="${esc(label)}" novalidate>${html}</form>`;
+  /* ---------- person pop-up card ---------- */
+  const reduceMotion = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (_) { return false; } };
+
+  function openPersonCard(id) {
+    if (!state.data || !state.data.people.some(p => p.id === id)) return;
+    openPerson = id;
+    pLastFocus = document.activeElement;
+    pscrim.classList.remove("in");
+    pscrim.innerHTML = `<section class="pcard" role="dialog" aria-modal="true" aria-labelledby="pc-title">
+      <div class="grab" aria-hidden="true"><span></span></div>
+      <div class="pc-head" id="pc-head"></div>
+      <div class="pc-body" id="pc-body"></div>
+    </section>`;
+    pscrim.hidden = false;
+    document.documentElement.classList.add("locked");
+    fillPersonCard();
+    const sheet = pscrim.querySelector(".pcard");
+    void sheet.offsetHeight;          // start the slide-up from below the screen
+    pscrim.classList.add("in");
+    bindSwipe(sheet, sheet.querySelector(".pc-body"), () => { closePersonCard(); return true; });
+    const x = pscrim.querySelector('[data-act="close-person"]');
+    if (x) x.focus({ preventScroll: true });
+  }
+
+  function closePersonCard(instant) {
+    if (!openPerson) return;
+    const id = openPerson;
+    openPerson = null;
+    const sheet = pscrim.querySelector(".pcard");
+    pscrim.classList.remove("in");
+    if (sheet) { sheet.classList.remove("dragging"); sheet.style.transform = "translateY(100%)"; }
+    const done = () => {
+      if (openPerson) return;      // another card opened in the meantime
+      pscrim.hidden = true; pscrim.innerHTML = "";
+      document.documentElement.classList.remove("locked");
+    };
+    if (instant || reduceMotion()) done(); else setTimeout(done, 300);
+    if (!instant) {
+      const back = (pLastFocus && document.contains(pLastFocus)) ? pLastFocus
+        : app.querySelector(`[data-act="person"][data-id="${CSS.escape(id)}"]`);
+      if (back) back.focus({ preventScroll: true });
+    }
+  }
+
+  function fillPersonCard() {
+    const p = state.data && state.data.people.find(x => x.id === openPerson);
+    if (!p) { closePersonCard(true); return; }
+    const head = document.getElementById("pc-head"), body = document.getElementById("pc-body");
+    if (!head || !body) return;
+    const gs = state.data.gifts.filter(g => g.person_id === p.id);
+    const spent = spentOf(gs), budget = p.budget, over = budget != null && spent > budget;
+    const id = esc(p.id), name = esc(p.name);
+    const line = budget != null
+      ? `<span><b>${money(spent)}</b> of ${money(budget)}</span><span>·</span>${over ? `<span class="over">${money(spent - budget)} over</span>` : `<span>${money(budget - spent)} left</span>`}`
+      : `<span><b>${money(spent)}</b> spent</span>`;
+    head.innerHTML = `
+      <div class="pc-top">
+        <h3 id="pc-title">${name}${p.is_child ? STAR : ""}</h3>
+        <button class="iconbtn" data-act="edit-person" data-id="${id}" aria-label="Edit ${name}">${PENCIL_L}</button>
+        <button class="iconbtn" data-act="close-person" aria-label="Close">${XICON}</button>
+      </div>
+      <div class="pc-money num">${line}<span>·</span><span>${plural(gs.length, "gift", "gifts")}</span></div>
+      ${budget == null
+        ? `<button class="nobudget" data-act="set-budget" data-id="${id}">No budget yet · <span>Set budget</span></button>`
+        : budget > 0 ? `<div class="cane" role="img" aria-label="${money(spent)} of ${money(budget)} spent"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></div>` : ""}`;
+    const top = body.scrollTop;
+    body.innerHTML = `${gs.length ? gs.map(g => giftCard(g)).join("") : `<p class="none">No gifts yet.</p>`}
+      <button class="addgift" data-act="add-gift" data-id="${id}">+ Add a gift for ${name}</button>`;
+    body.scrollTop = top;
+  }
+
+  // Swipe the card down to close it: from the top area, or from the list when it's scrolled to the top.
+  // Shared by the person card and every edit window. onClose returns false when the close was
+  // held back (unsaved changes), and the card springs back into place.
+  function bindSwipe(sheet, body, onClose) {
+    let y0 = null, dy = 0, dragging = false, t0 = 0;
+    sheet.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1) { y0 = null; return; }
+      if (body.contains(e.target) && body.scrollTop > 0) { y0 = null; return; }
+      y0 = e.touches[0].clientY; dy = 0; dragging = false; t0 = Date.now();
+    }, { passive: true });
+    sheet.addEventListener("touchmove", e => {
+      if (y0 == null) return;
+      const d = e.touches[0].clientY - y0;
+      if (!dragging) {
+        if (d > 8) { dragging = true; sheet.classList.add("dragging"); }
+        else if (d < -4) { y0 = null; return; }   // they're scrolling the list up, not dragging
+        else return;
+      }
+      dy = Math.max(0, d);
+      sheet.style.transform = `translateY(${dy}px)`;
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    const end = () => {
+      if (y0 == null) return;
+      y0 = null;
+      if (!dragging) return;
+      dragging = false;
+      sheet.classList.remove("dragging");
+      const flick = dy > 50 && Date.now() - t0 < 250;
+      if ((dy > 120 || flick) && onClose() !== false) return;
+      sheet.style.transform = "";
+    };
+    sheet.addEventListener("touchend", end);
+    sheet.addEventListener("touchcancel", end);
+  }
+
+  /* ---------- slim bar pinned to the top ---------- */
+  function renderMini(spent, budget, over) {
+    const d = daysToChristmas();
+    const left = budget == null ? "—" : big(Math.abs(budget - spent));
+    const label = `Spent ${money(spent)}${budget != null ? `, ${over ? "over by" : "left"} ${money(Math.abs(budget - spent))}, budget ${money(budget)}` : ""}, ${plural(d, "day", "days")} to Christmas. Back to top`;
+    mini.innerHTML = `<button class="mini-in" type="button" aria-label="${esc(label)}">
+      <span class="mini-grid" aria-hidden="true">
+        <span class="m"><span class="ml">Spent</span><span class="mv num pink">${big(spent)}</span></span>
+        <span class="m"><span class="ml">${over ? "Over" : "Left"}</span><span class="mv num ${over ? "gold" : ""}">${left}</span></span>
+        <span class="m"><span class="ml">Budget</span><span class="mv num">${budget == null ? "—" : big(budget)}</span></span>
+        <span class="m days"><span class="ml">Days</span><span class="mv num">${d}</span></span>
+      </span>
+      ${budget != null && budget > 0 ? `<span class="cane" aria-hidden="true"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></span>` : ""}
+    </button>`;
+  }
+  function updateMini() {
+    const g = state.data && state.code ? app.querySelector(".stat-grid") : null;
+    mini.classList.toggle("on", !!g && g.getBoundingClientRect().bottom < 4);
+  }
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; updateMini(); });
+  }, { passive: true });
+  mini.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion() ? "auto" : "smooth" }));
+
+  /* ---------- edit windows ---------- */
+  // Each edit window is a pop-up card like the person card: grab handle, ✕, slides up and down,
+  // closes with a swipe down, the ✕ or a tap outside. If anything was changed and not saved,
+  // closing asks "Discard changes?" first.
+  let lastFocus = null, sheetSnap = "", sheetToken = 0;
+  const formState = form => JSON.stringify([...form.elements]
+    .filter(el => (el.id || el.name) && !["file", "button", "submit"].includes(el.type))
+    .map(el => (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value));
+
+  // focus: a selector for the box that should get the keyboard, or null for no keyboard
+  function openSheet({ label, title, body, onSubmit, onReady, focus }) {
+    sheetToken++;
+    const swapping = !scrim.hidden && scrim.classList.contains("in");   // one window replacing another, e.g. picker → gift
+    if (!swapping) lastFocus = document.activeElement;
+    if (!swapping) scrim.classList.remove("in");
+    scrim.innerHTML = `<form class="sheet${openPerson ? " stacked" : ""}" role="dialog" aria-modal="true" aria-label="${esc(label)}" novalidate tabindex="-1">
+      <div class="grab" aria-hidden="true"><span></span></div>
+      <div class="ec-head"><h3>${title}</h3><button type="button" class="iconbtn" data-close aria-label="Close">${XICON}</button></div>
+      <div class="ec-body">${body}</div>
+      <div class="discard" hidden>
+        <p>Discard changes?</p>
+        <button type="button" class="btn" data-keep>Keep editing</button>
+        <button type="button" class="btn danger armed" data-discard>Discard</button>
+      </div>
+    </form>`;
     scrim.hidden = false;
     const form = scrim.querySelector("form");
     form.addEventListener("submit", async ev => {
@@ -675,18 +1031,51 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       save.disabled = false;
       if (ok) closeSheet();
     });
-    form.querySelectorAll("[data-close]").forEach(x => x.addEventListener("click", closeSheet));
+    form.querySelector("[data-close]").addEventListener("click", requestCloseSheet);
+    form.querySelector("[data-keep]").addEventListener("click", () => {
+      form.querySelector(".discard").hidden = true;
+      form.focus({ preventScroll: true });
+    });
+    form.querySelector("[data-discard]").addEventListener("click", () => closeSheet());
     if (onReady) onReady(form);
-    const first = focusSel === false ? null : ((focusSel && form.querySelector(focusSel)) || form.querySelector('input[type="text"], input[inputmode]'));
-    if (first) first.focus();
+    sheetSnap = formState(form);
+    const target = focus ? form.querySelector(focus) : null;
+    if (target) target.focus({ preventScroll: true }); else form.focus({ preventScroll: true });
+    void form.offsetHeight;           // start the slide-up from below the screen
+    scrim.classList.add("in");
+    bindSwipe(form, form.querySelector(".ec-body"), requestCloseSheet);
   }
-  function closeSheet() {
+
+  // Close if nothing changed; otherwise show "Discard changes?" and keep the window open.
+  function requestCloseSheet() {
+    const form = scrim.querySelector("form");
+    if (!form || scrim.hidden) return true;
+    if (formState(form) !== sheetSnap) {
+      const bar = form.querySelector(".discard");
+      bar.hidden = false;
+      bar.querySelector("[data-keep]").focus({ preventScroll: true });
+      return false;
+    }
+    closeSheet();
+    return true;
+  }
+
+  function closeSheet(instant) {
     if (scrim.hidden) return;
-    scrim.hidden = true; scrim.innerHTML = "";
-    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    const token = ++sheetToken;
+    const form = scrim.querySelector("form");
+    scrim.classList.remove("in");
+    if (form) { form.classList.remove("dragging"); form.style.transform = "translateY(100%)"; }
+    const done = () => { if (token !== sheetToken) return; scrim.hidden = true; scrim.innerHTML = ""; };
+    if (instant || reduceMotion()) done(); else setTimeout(done, 300);
+    if (!instant && lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
   }
-  scrim.addEventListener("click", e => { if (e.target === scrim) closeSheet(); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && !scrim.hidden) closeSheet(); });
+  scrim.addEventListener("click", e => { if (e.target === scrim) requestCloseSheet(); });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!scrim.hidden) requestCloseSheet();   // the edit window sits on top, so it goes first
+    else if (openPerson) closePersonCard();
+  });
 
   function armButton(btn, label, action) {
     let armed = false;
@@ -702,181 +1091,241 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
   const showErr = (form, msg) => { form.querySelector(".err").textContent = msg; };
   const actions = (del, saveLabel) => `<div class="err" aria-live="polite"></div>
-    <div class="row-actions">${del}<div class="right"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${saveLabel}</button></div></div>`;
+    <div class="row-actions">${del}<div class="right"><button type="submit" class="btn primary">${saveLabel}</button></div></div>`;
   const segHtml = (name, opts, picked, cols) => `<div class="seg${cols === "flow" ? " flow" : ""}" role="radiogroup" style="--cols:${cols === "flow" ? 4 : cols}">
     ${opts.map(o => `<input type="radio" name="${name}" id="f-${name}-${o.v}" value="${o.v}" ${String(o.v) === String(picked) ? "checked" : ""}><label for="f-${name}-${o.v}" class="${o.cls}">${esc(o.label)}</label>`).join("")}
   </div>`;
   const picked = (form, name) => (form.querySelector(`input[name="${name}"]:checked`) || {}).value;
 
-  function budgetSheet() {
-    const cur = state.data.overall_budget;
-    openSheet("Overall budget", `
-      <h3>Overall Christmas budget</h3>
-      <div class="field"><label for="f-total">Total for all gifts</label>
-        <input id="f-total" inputmode="decimal" placeholder="$0" value="${cur != null ? cur : ""}"></div>
-      ${actions("", "Save budget")}`,
-      async form => {
-        const v = parseMoney(form.querySelector("#f-total").value);
-        if (Number.isNaN(v)) { showErr(form, "Enter a dollar amount, like 500."); return false; }
-        return act("gift_set_budget", { p_amount: v });
-      });
-  }
-
-  function shoppersSheet() {
-    const d = state.data;
-    openSheet("Shoppers", `
-      <h3>Who's shopping</h3>
-      <p class="small">These names show on each gift so you can tell who bought what, and the summary adds up what each of you has spent.</p>
-      <div class="field"><label for="f-s1">First shopper</label>
-        <input id="f-s1" type="text" autocomplete="off" autocapitalize="words" value="${esc(d.shopper1 || "")}" placeholder="e.g. JMar"></div>
-      <div class="field"><label for="f-s2">Second shopper</label>
-        <input id="f-s2" type="text" autocomplete="off" autocapitalize="words" value="${esc(d.shopper2 || "")}" placeholder="Their name"></div>
-      <div class="field"><span class="lbl" id="f-me-lbl">This phone belongs to</span>
-        <div id="f-me-wrap">${segHtml("me", [
-          { v: 1, label: d.shopper1 || "First", cls: "plain" },
-          { v: 2, label: d.shopper2 || "Second", cls: "plain" },
-          { v: 0, label: "Not set", cls: "plain" }], state.me || 0, 3)}</div>
-        <p class="small">When you mark a gift Ordered or Bought on this phone, it's tagged with this name automatically.</p></div>
-      ${actions("", "Save")}`,
-      async form => {
-        const s1 = form.querySelector("#f-s1").value.trim().slice(0, 40);
-        const s2 = form.querySelector("#f-s2").value.trim().slice(0, 40);
-        const me = Number(picked(form, "me")) || 0;
-        state.me = me === 1 || me === 2 ? me : null;
-        if (state.me) store.set("giftMe", String(state.me)); else store.del("giftMe");
-        if (s1 === (d.shopper1 || "") && s2 === (d.shopper2 || "")) { render(); return true; }
-        return act("gift_set_shoppers", { p_name1: s1, p_name2: s2 });
-      },
-      form => {
-        // Keep the phone-owner buttons in step with the names as they're typed
-        const sync = () => {
-          const l1 = form.querySelector('label[for="f-me-1"]'), l2 = form.querySelector('label[for="f-me-2"]');
-          l1.textContent = form.querySelector("#f-s1").value.trim() || "First";
-          l2.textContent = form.querySelector("#f-s2").value.trim() || "Second";
-        };
-        form.querySelector("#f-s1").addEventListener("input", sync);
-        form.querySelector("#f-s2").addEventListener("input", sync);
-      });
-  }
-
-  function personSheet(id, focus) {
+  // thenGift: after adding a new person, go straight to adding a gift for them (from the 🎁 button)
+  function personSheet(id, focus, thenGift) {
     const p = id ? state.data.people.find(x => x.id === id) : null;
     const n = p ? state.data.gifts.filter(g => g.person_id === p.id).length : 0;
-    openSheet(p ? "Edit person" : "Add a person", `
-      <h3>${p ? "Edit " + esc(p.name) : "Add a person"}</h3>
-      <div class="field"><label for="f-name">Name</label>
-        <input id="f-name" type="text" autocomplete="off" autocapitalize="words" value="${esc(p ? p.name : "")}" placeholder="e.g. Grandpa"></div>
-      <div class="field"><label for="f-budget">Budget for them (optional)</label>
-        <input id="f-budget" inputmode="decimal" placeholder="$0" value="${p && p.budget != null ? p.budget : ""}"></div>
-      <label class="check"><input type="checkbox" id="f-kid" ${p && p.is_child ? "checked" : ""}> One of our kids</label>
-      ${actions(p ? `<button type="button" class="btn danger" id="f-del">Remove</button>` : "", p ? "Save" : "Add person")}`,
-      async form => {
+    openSheet({
+      label: p ? "Edit person" : "Add a person",
+      title: p ? "Edit " + esc(p.name) : "Add a person",
+      body: `<div class="field"><label for="f-name">Name</label>
+          <input id="f-name" type="text" autocomplete="off" autocapitalize="words" value="${esc(p ? p.name : "")}" placeholder="e.g. Grandpa"></div>
+        <div class="field"><label for="f-budget">Budget for them (optional)</label>
+          <input id="f-budget" inputmode="decimal" placeholder="$0" value="${p && p.budget != null ? p.budget : ""}"></div>
+        <label class="check"><input type="checkbox" id="f-kid" ${p && p.is_child ? "checked" : ""}> One of our kids ⭐</label>
+        ${actions(p ? `<button type="button" class="btn danger" id="f-del">Remove</button>` : "", p ? "Save" : "Add person")}`,
+      // New person: type the name. "Set budget": type the budget. Editing: no keyboard.
+      focus: !p ? "#f-name" : focus === "budget" ? "#f-budget" : null,
+      onSubmit: async form => {
         const name = form.querySelector("#f-name").value.trim();
         const budget = parseMoney(form.querySelector("#f-budget").value);
         const kid = form.querySelector("#f-kid").checked;
         if (!name) { showErr(form, "Add a name."); return false; }
         if (name.length > 80) { showErr(form, "Keep the name under 80 characters."); return false; }
         if (Number.isNaN(budget)) { showErr(form, "Enter the budget as a dollar amount, like 75."); return false; }
-        return act("gift_save_person", { p_id: p ? p.id : null, p_name: name, p_budget: budget, p_is_child: kid });
+        const r = await send("gift_save_person", { p_id: p ? p.id : null, p_name: name, p_budget: budget, p_is_child: kid });
+        if (!r.ok) return false;
+        await refresh();
+        if (!p && thenGift && r.value) setTimeout(() => giftSheet(r.value, null), 0);   // opens right after this window closes
+        return true;
       },
-      form => {
+      onReady: form => {
         const del = form.querySelector("#f-del");
         if (del) armButton(del, n ? `Remove ${p.name} and ${plural(n, "gift", "gifts")}?` : `Remove ${p.name}?`, async () => {
+          const person = { name: p.name, budget: p.budget, is_child: p.is_child };
+          const theirGifts = state.data.gifts.filter(g => g.person_id === p.id).map(g => Object.assign({}, g));
           revealed.delete("p:" + p.id);
-          return act("gift_delete_person", { p_id: p.id });
+          const ok = await act("gift_delete_person", { p_id: p.id });
+          if (ok) offerUndo(`Removed ${person.name}`, async () => {
+            const r = await send("gift_save_person", { p_id: null, p_name: person.name, p_budget: person.budget, p_is_child: person.is_child });
+            if (!r.ok) return false;
+            for (const g of theirGifts) {
+              const r2 = await send("gift_save_gift", Object.assign({ p_id: null }, giftArgs(g, r.value)));
+              if (!r2.ok) break;
+            }
+            await refresh();
+            return true;
+          });
+          return ok;
         });
-      },
-      focus === "budget" ? "#f-budget" : null);
+      }
+    });
+  }
+
+  // The 🎁 button: pick who the gift is for (kids first), or add someone new.
+  function pickerSheet() {
+    const people = state.data.people;
+    if (!people.length) { personSheet(null, null, true); return; }
+    const colorOf = colorsOf(people);
+    const order = people.filter(p => p.is_child).concat(people.filter(p => !p.is_child));
+    const count = p => state.data.gifts.filter(g => g.person_id === p.id).length;
+    openSheet({
+      label: "Add a gift",
+      title: "Who's it for?",
+      focus: null,
+      onSubmit: null,
+      body: `<div class="pick-list">
+        ${order.map(p => `<button type="button" class="pick-row" data-pick="${esc(p.id)}">
+          <span class="avatar av-${colorOf[p.id]}" aria-hidden="true">${esc(initials(p.name))}</span>
+          <span>${esc(p.name)}${p.is_child ? STAR : ""} <small>· ${plural(count(p), "gift", "gifts")}</small></span>
+        </button>`).join("")}
+        <button type="button" class="pick-row pick-new" data-pick="new">
+          <span class="avatar av-0" aria-hidden="true">+</span><span>New person</span>
+        </button>
+      </div>`,
+      onReady: form => form.querySelectorAll("[data-pick]").forEach(btn => btn.addEventListener("click", () => {
+        const v = btn.dataset.pick;
+        if (v === "new") personSheet(null, null, true); else giftSheet(v, null);
+      }))
+    });
+  }
+
+  function sortSheet() {
+    openSheet({
+      label: "Sort people",
+      title: "Sort people by",
+      focus: null,
+      onSubmit: null,
+      body: `<div class="optlist">${SORTS.map(([v, l, d]) => `<button type="button" class="opt" data-sort="${v}" aria-pressed="${state.sort === v}">${l}<small>${d}</small></button>`).join("")}</div>`,
+      onReady: form => form.querySelectorAll("[data-sort]").forEach(btn => btn.addEventListener("click", () => {
+        state.sort = btn.dataset.sort;
+        store.set("giftSort", state.sort);
+        render();
+        closeSheet();
+      }))
+    });
+  }
+
+  // Start a new year: save a backup file first, then clear every gift. People, kids and budgets stay.
+  function newYearSheet() {
+    const n = state.data.gifts.length;
+    let saved = false;
+    openSheet({
+      label: "Start a new year",
+      title: "Start a new year",
+      focus: null,
+      onSubmit: null,
+      body: n === 0
+        ? `<p>There aren't any gifts on the list, so there's nothing to clear.</p>`
+        : `<p>This clears all ${plural(n, "gift", "gifts")} so you can start fresh. Everyone on the list stays, along with ⭐ kids and their budgets.</p>
+          <div class="steps">
+            <button type="button" class="btn primary wide" id="ny-save">1. Save a backup of this year</button>
+            <button type="button" class="btn danger wide" id="ny-clear" disabled>2. Clear all gifts</button>
+          </div>
+          <p class="small">The clear button turns on once the backup is saved. To bring this year's gifts back later, use Restore from a backup with that file.</p>
+          <div class="err" aria-live="polite"></div>`,
+      onReady: form => {
+        const saveBtn = form.querySelector("#ny-save"), clearBtn = form.querySelector("#ny-clear");
+        if (!saveBtn) return;
+        saveBtn.addEventListener("click", async () => {
+          if (await exportBackup()) {
+            saved = true;
+            saveBtn.textContent = "✓ Backup saved";
+            saveBtn.classList.remove("primary");
+            clearBtn.disabled = false;
+          }
+        });
+        armButton(clearBtn, "Tap again to clear all gifts", async () => {
+          if (!saved) return false;
+          const ids = state.data.gifts.map(g => g.id);
+          for (let i = 0; i < ids.length; i++) {
+            clearBtn.textContent = `Clearing ${i + 1} of ${ids.length}…`;
+            const r = await send("gift_delete_gift", { p_id: ids[i] });
+            if (!r.ok) { await refresh(); showErr(form, "Some gifts weren't cleared. Check your connection and try again."); return false; }
+          }
+          await refresh();
+          revealed.clear();
+          toast("Fresh start. All gifts cleared.");
+          return true;
+        });
+      }
+    });
   }
 
   function giftSheet(personId, g, focus) {
     const p = state.data.people.find(x => x.id === personId);
     if (!p) return;
     const st = g ? statusOf(g) : "idea";
-    const by = g ? (g.bought_by || 0) : (state.me || 0);
-    openSheet(g ? "Edit gift" : "New gift", `
-      <h3>${g ? "Edit gift for " : "New gift for "}${esc(p.name)}</h3>
-      <div class="field"><label for="f-item">Gift</label>
-        <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
-      <div class="field"><label for="f-store">Store</label>
-        <input id="f-store" type="text" autocomplete="off" autocapitalize="words" value="${esc(g ? g.store : "")}" placeholder="e.g. Target"></div>
-      <div class="field"><label for="f-price">Price paid</label>
-        <input id="f-price" inputmode="decimal" placeholder="$0" value="${g && g.price != null ? g.price : ""}"></div>
-      <div class="field"><span class="lbl">Status</span>
-        ${segHtml("status", STATUSES.map(s => ({ v: s, label: LABEL[s], cls: "st-" + s })), st, "flow")}</div>
-      <div class="field" id="f-exp-wrap"><label for="f-exp">Expected delivery</label>
-        <input id="f-exp" type="date" value="${g && g.expected ? esc(String(g.expected).slice(0, 10)) : ""}"></div>
-      <div class="field"><span class="lbl">Bought by</span>
-        ${segHtml("by", [
-          { v: 1, label: shopperName(1), cls: "plain" },
-          { v: 2, label: shopperName(2), cls: "plain" },
-          { v: 0, label: "Not set", cls: "plain" }], by, 3)}</div>
-      <div class="field"><label for="f-notes">Notes</label>
-        <textarea id="f-notes" rows="3" maxlength="500" placeholder="Size, order number, where it's hidden…">${esc(g ? g.notes : "")}</textarea></div>
-      ${actions(g ? `<button type="button" class="btn danger" id="f-del">Delete</button>` : "", g ? "Save" : "Add gift")}`,
-      async form => {
+    openSheet({
+      label: g ? "Edit gift" : "New gift",
+      title: (g ? "Edit gift for " : "New gift for ") + esc(p.name),
+      body: `<div class="field"><label for="f-item">Gift</label>
+          <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
+        <div class="field"><label for="f-store">Store</label>
+          <input id="f-store" type="text" autocomplete="off" autocapitalize="words" value="${esc(g ? g.store : "")}" placeholder="e.g. Target"></div>
+        <div class="field"><label for="f-price">Price paid</label>
+          <input id="f-price" inputmode="decimal" placeholder="$0" value="${g && g.price != null ? g.price : ""}"></div>
+        <div class="field"><span class="lbl">Status</span>
+          ${segHtml("status", STATUSES.map(s => ({ v: s, label: LABEL[s], cls: "st-" + s })), st, "flow")}</div>
+        <div class="field" id="f-exp-wrap"><label for="f-exp">Expected delivery</label>
+          <input id="f-exp" type="date" value="${g && g.expected ? esc(String(g.expected).slice(0, 10)) : ""}"></div>
+        <div class="field"><label for="f-notes">Notes</label>
+          <textarea id="f-notes" rows="3" maxlength="500" placeholder="Size, order number, where it's hidden…">${esc(g ? g.notes : "")}</textarea></div>
+        ${actions(g ? `<button type="button" class="btn danger" id="f-del">Delete</button>` : "", g ? "Save" : "Add gift")}`,
+      // New gift: type its name. "add price": type the price. Opening an existing gift: no keyboard.
+      focus: !g ? "#f-item" : focus === "price" ? "#f-price" : null,
+      onSubmit: async form => {
         const item = form.querySelector("#f-item").value.trim();
         const storeName = form.querySelector("#f-store").value.trim();
         const price = parseMoney(form.querySelector("#f-price").value);
         const status = picked(form, "status") || "idea";
         const notes = form.querySelector("#f-notes").value.trim();
-        const who = Number(picked(form, "by")) || null;
         const exp = status === "ordered" ? (form.querySelector("#f-exp").value || null) : null;
         if (!item) { showErr(form, "Say what the gift is."); return false; }
         if (item.length > 200 || storeName.length > 120) { showErr(form, "That's too long. Shorten the gift or store name."); return false; }
         if (notes.length > 500) { showErr(form, "Keep notes under 500 characters."); return false; }
         if (Number.isNaN(price)) { showErr(form, "Enter the price as a dollar amount, like 24.99."); return false; }
-        if (!g) revealed.add("p:" + p.id);
         return act("gift_save_gift", {
           p_id: g ? g.id : null, p_person_id: p.id, p_item: item, p_store: storeName, p_price: price, p_status: status,
-          p_notes: notes, p_bought_by: who, p_expected: exp
+          p_notes: notes, p_bought_by: g ? g.bought_by : null, p_expected: exp   // keep any old shopper tag as it was
         });
       },
-      form => {
+      onReady: form => {
         const wrap = form.querySelector("#f-exp-wrap");
         const showExp = () => { wrap.hidden = picked(form, "status") !== "ordered"; };
         form.querySelectorAll('input[name="status"]').forEach(r => r.addEventListener("change", showExp));
         showExp();
         const del = form.querySelector("#f-del");
-        if (del) armButton(del, "Delete this gift?", () => act("gift_delete_gift", { p_id: g.id }));
-      },
-      focus === "price" ? "#f-price" : null);
+        if (del) armButton(del, "Delete this gift?", async () => {
+          const copy = Object.assign({}, g);
+          const ok = await act("gift_delete_gift", { p_id: g.id });
+          if (ok) offerUndo("Gift deleted", () => act("gift_save_gift", Object.assign({ p_id: null }, giftArgs(copy, copy.person_id))));
+          return ok;
+        });
+      }
+    });
   }
 
   /* ---------- export ---------- */
-  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Bought by", "Expected delivery", "Notes"];
+  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Expected delivery", "Notes"];
   function csvCell(v) {
     let s = v == null ? "" : String(v);
     if (/^[=+\-@]/.test(s)) s = "'" + s;   // keep spreadsheet apps from treating text as a formula
     return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   }
   function buildCsv(data) {
-    const nm = n => n === 1 ? (data.shopper1 || "Shopper 1") : n === 2 ? (data.shopper2 || "Shopper 2") : "";
     const rows = [COLS];
     for (const p of data.people) {
       const gs = data.gifts.filter(g => g.person_id === p.id);
       const kid = p.is_child ? "Yes" : "";
-      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", "", ""]);
-      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], nm(g.bought_by), g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
+      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", ""]);
+      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
     }
     rows.push([]);
-    rows.push(["Overall budget", data.overall_budget]);
-    rows.push(["Shopper 1", data.shopper1 || ""]);
-    rows.push(["Shopper 2", data.shopper2 || ""]);
+    const set = data.people.filter(p => p.budget != null);
+    rows.push(["Overall budget", set.length ? Math.round(set.reduce((a, p) => a + p.budget, 0) * 100) / 100 : ""]);
     rows.push(["Exported", new Date().toLocaleString()]);
     return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
   }
   async function exportBackup() {
     // Use the list on screen (refreshed every few seconds) so the share sheet opens straight from the tap.
-    if (!state.data) { toast("Nothing to export yet."); return; }
+    // Returns true once the file is saved or shared, false if it was cancelled or failed.
+    if (!state.data) { toast("Nothing to export yet."); return false; }
     const d = new Date();
     const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     const name = `christmas-gifts-${stamp}.csv`;
     const csv = buildCsv(state.data);
     let file = null;
     try { file = new File([csv], name, { type: "text/csv" }); } catch (_) {}
+    let ok = false;
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Christmas gift list backup" }); }
+      try { await navigator.share({ files: [file], title: "Christmas gift list backup" }); ok = true; }
       catch (e) { if (e && e.name !== "AbortError") toast("Couldn't open the share sheet. Try again."); }
     } else {
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -884,8 +1333,10 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       toast("Backup saved to your downloads.");
+      ok = true;
     }
-    if (state.offline) toast("You're offline, so this backup is from " + new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    if (ok && state.offline) toast("You're offline, so this backup is from " + new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    return ok;
   }
 
   /* ---------- restore ---------- */
@@ -955,19 +1406,20 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   function restoreSheet() {
     const curPeople = state.data.people.length, curGifts = state.data.gifts.length;
     let parsed = null;
-    openSheet("Restore from a backup", `
-      <h3>Restore from a backup</h3>
-      <p>Pick a backup file you saved with <b>Export a backup</b>. Restoring replaces the whole list, on both phones, with what's in the file.</p>
-      <div class="filepick btn wide">Choose backup file<input id="f-file" type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" aria-label="Choose backup file"></div>
-      <div class="preview" id="f-preview" hidden></div>
-      <p class="small">Your list right now: ${plural(curPeople, "person", "people")} and ${plural(curGifts, "gift", "gifts")}. If you might want it back, export a backup of it first.</p>
-      <div class="err" aria-live="polite"></div>
-      <div class="row-actions"><div class="right">
-        <button type="button" class="btn" data-close>Cancel</button>
-        <button type="button" class="btn danger" id="f-restore" disabled>Replace the list</button>
-      </div></div>`,
-      null,
-      form => {
+    openSheet({
+      label: "Restore from a backup",
+      title: "Restore from a backup",
+      body: `<p>Pick a backup file you saved with <b>Export a backup</b>. Restoring replaces the whole list, on both phones, with what's in the file.</p>
+        <div class="filepick btn wide">Choose backup file<input id="f-file" type="file" accept=".csv,text/csv,text/comma-separated-values,text/plain" aria-label="Choose backup file"></div>
+        <div class="preview" id="f-preview" hidden></div>
+        <p class="small">Your list right now: ${plural(curPeople, "person", "people")} and ${plural(curGifts, "gift", "gifts")}. If you might want it back, export a backup of it first.</p>
+        <div class="err" aria-live="polite"></div>
+        <div class="row-actions"><div class="right">
+          <button type="button" class="btn danger" id="f-restore" disabled>Replace the list</button>
+        </div></div>`,
+      focus: null,
+      onSubmit: null,
+      onReady: form => {
         const input = form.querySelector("#f-file");
         const prev = form.querySelector("#f-preview");
         const btn = form.querySelector("#f-restore");
@@ -991,8 +1443,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           if (ok) { revealed.clear(); toast("List restored from the backup."); }
           return ok;
         });
-      },
-      false);
+      }
+    });
   }
 
   /* ---------- start ---------- */
