@@ -40,7 +40,7 @@ body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.4;
   padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);   /* room for the floating gift button */
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   -webkit-tap-highlight-color: transparent;
@@ -70,6 +70,17 @@ h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; fon
 .stat-v.gold { color: var(--gold); }
 .stat-btn { background: none; border: 0; padding: 0; text-align: left; color: inherit; min-height: 44px; border-radius: 8px; }
 .stat-btn .stat-l { display: inline-flex; align-items: center; gap: 4px; }
+.stat-note { font-size: 12px; font-weight: 700; line-height: 1.25; color: var(--gold); }
+.head-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.privbtn { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--soft); }
+.privbtn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+/* Privacy mode: blur amounts and gift details everywhere; people's names stay readable */
+html.private .stat-v, html.private .mv, html.private .amt, html.private .g-item, html.private .g-sub, html.private .g-note,
+html.private .kids-sum, html.private .kid-amt, html.private .kids-note, html.private .pc-money, html.private .who-name small {
+  filter: blur(7px); -webkit-user-select: none; user-select: none;
+}
+.sortbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -6px 2px -8px; font-size: 13px; color: var(--muted); }
+.sortbtn { min-height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--soft); font-size: 13px; font-weight: 700; }
 .setlink { background: none; border: 0; padding: 0; min-height: 44px; text-align: left; color: var(--gold); font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .cane { height: 12px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .cane > span { display: block; height: 100%; border-radius: 999px; background: repeating-linear-gradient(135deg, var(--berry) 0 6px, var(--berry-2) 6px 12px); transition: width .3s ease; }
@@ -297,7 +308,34 @@ html.locked, html.locked body { overflow: hidden; }
 .preview { background: var(--inset); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 14px; color: var(--soft); display: flex; flex-direction: column; gap: 4px; }
 .preview b { color: var(--ink); }
 
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
+/* Floating add-a-gift button and the Undo bar beside it */
+.fab {
+  position: fixed; z-index: 16; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  width: 62px; height: 62px; border-radius: 50%; border: 0; background: var(--berry); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center; font-size: 30px; line-height: 1;
+}
+.fab:active { transform: scale(0.94); }
+.undo {
+  position: fixed; z-index: 25; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(max(16px, env(safe-area-inset-right, 0px)) + 76px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 19px); max-width: 480px; min-height: 56px;
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px; border-radius: 14px;
+  background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+}
+.undo span { flex: 1; min-width: 0; }
+.undo button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--bg); color: var(--gold); font-size: 15px; font-weight: 800; }
+/* "Who's it for?" picker and option lists */
+.pick-list { display: flex; flex-direction: column; }
+.pick-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 2px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: left; font-size: 16px; font-weight: 700; }
+.pick-row:last-child { border-bottom: 0; }
+.pick-row small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.pick-row .avatar { width: 36px; height: 36px; font-size: 14px; }
+.pick-new { color: var(--green); }
+.optlist, .steps { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 56px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); text-align: left; font-size: 15px; font-weight: 700; }
+.opt small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.opt[aria-pressed="true"] { border-color: var(--green); background: var(--bought-bg); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
 @media (prefers-reduced-motion: reduce) { .cane > span, .mini, .mini.on, .pscrim, .pcard, .scrim, .sheet { transition: none !important; } }
 </style>
 </head>
@@ -305,6 +343,8 @@ html.locked, html.locked body { overflow: hidden; }
 <main class="wrap" id="app"></main>
 <div class="mini" id="mini"></div>
 <div class="pscrim" id="pscrim" hidden></div>
+<button class="fab" id="fab" type="button" aria-label="Add a gift" hidden>🎁</button>
+<div class="undo" id="undo" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
@@ -326,6 +366,13 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const XICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>';
   const PENCIL_L = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
   const STAR = '<span class="star" role="img" aria-label="kid">⭐</span>';
+  const EYE_OFF = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path><path d="M2 2l20 20"></path></svg>';
+  const SORTS = [
+    ["added", "Order added", "The order people were added"],
+    ["kids", "Kids first", "⭐ kids at the top, then everyone else"],
+    ["far", "Furthest from budget", "Most left to spend first; no budget at the end"],
+    ["az", "A to Z", "Alphabetical by name"]
+  ];
   const POLL_MS = 10000;
   const BASE = String(SUPABASE_URL).trim().replace(/\/+$/, "");
   const CONFIGURED = /^https:\/\//.test(BASE) && !/PASTE_/.test(SUPABASE_KEY);
@@ -343,7 +390,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     syncedAt: null,
     offline: false,
     view: store.get("giftView") === "status" ? "status" : "person",
-    kidsOpen: store.get("giftKidsOpen") === "1"
+    kidsOpen: store.get("giftKidsOpen") === "1",
+    sort: SORTS.some(s => s[0] === store.get("giftSort")) ? store.get("giftSort") : "added",
+    priv: false             // privacy mode always starts off
   };
   store.del("giftMe");   // left over from the shopper feature, which has been removed
   try { const c = JSON.parse(store.get("giftCache") || "null"); if (c && c.data && c.v === 2) { state.data = c.data; state.lastJson = JSON.stringify(c.data); state.syncedAt = c.at; } } catch (_) {}
@@ -355,6 +404,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const toastEl = document.getElementById("toast");
   const mini = document.getElementById("mini");
   const pscrim = document.getElementById("pscrim");
+  const fab = document.getElementById("fab");
+  const undoEl = document.getElementById("undo");
   let openPerson = null;    // id of the person whose card is open
   let pLastFocus = null;
 
@@ -455,23 +506,52 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       .finally(() => { refreshing = null; });
     return refreshing;
   }
-  async function act(fn, args) {
-    try { await rpc(fn, Object.assign({ p_code: state.code }, args)); await refresh(); return true; }
+  // send: one save call, returning { ok, value }. act: the same, then reload the list.
+  async function send(fn, args) {
+    try { return { ok: true, value: await rpc(fn, Object.assign({ p_code: state.code }, args)) }; }
     catch (e) {
-      if (e.code === "passcode") { lock("The passcode has changed. Enter the new one."); return false; }
+      if (e.code === "passcode") { lock("The passcode has changed. Enter the new one."); return { ok: false }; }
       if (e.code === "network") toast("Couldn't save. Check your connection and try again.");
       else if (e.status === 404) toast("The app needs its database update. Run update-1.sql in Supabase.");
       else toast("Couldn't save that change. Try again in a moment.");
       refresh();
-      return false;
+      return { ok: false };
     }
+  }
+  async function act(fn, args) {
+    const r = await send(fn, args);
+    if (r.ok) await refresh();
+    return r.ok;
   }
   function lock(msg) {
     state.code = null; state.data = null; state.lastJson = "";
     store.del("giftCode"); store.del("giftCache");
-    revealed.clear(); closeSheet(true); closePersonCard(true);
+    state.priv = false; document.documentElement.classList.remove("private");
+    revealed.clear(); closeSheet(true); closePersonCard(true); hideUndo();
     renderGate(msg || "");
   }
+
+  /* ---------- undo ---------- */
+  // After a status tap, a deleted gift or a removed person, an Undo button shows for 6 seconds.
+  let undoFn = null, undoTimer = null;
+  function offerUndo(msg, fn) {
+    undoFn = fn;
+    undoEl.innerHTML = `<span>${esc(msg)}</span><button type="button">Undo</button>`;
+    undoEl.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 6000);
+  }
+  function hideUndo() { clearTimeout(undoTimer); undoFn = null; undoEl.hidden = true; }
+  undoEl.addEventListener("click", async e => {
+    if (!e.target.closest("button") || !undoFn) return;
+    const fn = undoFn;
+    hideUndo();
+    if (await fn()) toast("Undone");
+  });
+  const giftArgs = (g, personId) => ({
+    p_person_id: personId, p_item: g.item, p_store: g.store, p_price: g.price, p_status: statusOf(g),
+    p_notes: g.notes, p_bought_by: g.bought_by, p_expected: g.expected ? String(g.expected).slice(0, 10) : null
+  });
 
   /* ---------- screens ---------- */
   function renderSetup() {
@@ -481,6 +561,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
   function renderGate(msg) {
     mini.classList.remove("on");
+    fab.hidden = true;
     app.innerHTML = `<div class="gate">
       ${ringHtml(daysToChristmas())}
       <h1>Christmas Gift List</h1>
@@ -550,9 +631,23 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     </div>`;
   }
 
-  function personRows(people, gifts) {
+  // Avatar colors follow the order people were added, so they don't change when the list is re-sorted.
+  const colorsOf = people => Object.fromEntries(people.map((p, i) => [p.id, i % 4]));
+
+  function sortPeople(people, gifts) {
+    const list = people.slice();   // already in the order added
+    if (state.sort === "kids") return list.sort((a, b) => (b.is_child ? 1 : 0) - (a.is_child ? 1 : 0));
+    if (state.sort === "az") return list.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: "base" }));
+    if (state.sort === "far") {
+      const left = p => p.budget == null ? -Infinity : p.budget - spentOf(gifts.filter(g => g.person_id === p.id));
+      return list.sort((a, b) => { const la = left(a), lb = left(b); return la === lb ? 0 : lb > la ? 1 : -1; });
+    }
+    return list;
+  }
+
+  function personRows(people, gifts, colorOf) {
     if (!people.length) return `<div class="empty"><strong>No one on the list yet</strong>Add the first person below, then add their gifts.</div>`;
-    return people.map((p, i) => {
+    return people.map(p => {
       const gs = gifts.filter(g => g.person_id === p.id);
       const spent = spentOf(gs);
       const budget = p.budget;
@@ -562,7 +657,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         ? `<span class="thin" aria-hidden="true"><span class="${over ? "over" : ""}" style="width:${Math.min(100, spent / budget * 100).toFixed(1)}%"></span></span>` : "";
       return `<div class="row prow">
         <button class="prow-hit" data-act="person" data-id="${id}" aria-label="Open ${name}'s gifts"></button>
-        <span class="avatar av-${i % 4}" aria-hidden="true">${esc(initials(p.name))}</span>
+        <span class="avatar av-${colorOf[p.id]}" aria-hidden="true">${esc(initials(p.name))}</span>
         <span class="who"><span class="who-name">${name}${p.is_child ? STAR : ""} ${personMeta(gs, spent, budget)}</span>${bar}</span>
         ${budget != null
           ? `<span class="amt num ${over ? "over" : ""}">${money(spent)}<small> / ${money(budget)}</small></span>`
@@ -631,24 +726,38 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (!state.code) return renderGate("");
     if (!state.data) {
       mini.classList.remove("on");
+      fab.hidden = true;
       app.innerHTML = `<div class="gate">${ringHtml(daysToChristmas())}<p>${state.offline ? "Can't reach the list. Check your connection; it will retry on its own." : "Loading the list…"}</p></div>`;
       return;
     }
-    const { people, gifts: allGifts, overall_budget: budget } = state.data;
+    const { people, gifts: allGifts } = state.data;
     const byId = Object.fromEntries(people.map(p => [p.id, p]));
     const gifts = allGifts.filter(g => byId[g.person_id]);
     const spent = spentOf(gifts);
+    // The overall budget is the total of everyone's own budgets.
+    const withBudget = people.filter(p => p.budget != null);
+    const budget = withBudget.length ? Math.round(withBudget.reduce((a, p) => a + p.budget, 0) * 100) / 100 : null;
+    const noBudget = people.length - withBudget.length;
     const over = budget != null && spent > budget;
     const n = {}; STATUSES.forEach(s => n[s] = 0);
     gifts.forEach(g => n[statusOf(g)]++);
+    const colorOf = colorsOf(people);
+    const sortLabel = (SORTS.find(s => s[0] === state.sort) || SORTS[0])[1];
 
-    const budgetStat = budget != null
-      ? `<button class="stat stat-btn" data-act="budget" aria-label="Budget ${money(budget)}, change"><span class="stat-l">Budget ${PENCIL}</span><span class="stat-v num">${big(budget)}</span></button>`
-      : `<div class="stat"><span class="stat-l">Budget</span><button class="setlink" data-act="budget">Set budget</button></div>`;
+    const budgetStat = `<button class="stat stat-btn" data-act="budget-info" aria-label="Budget ${budget == null ? "not set" : money(budget)}. It's the total of everyone's budgets${noBudget && people.length ? `; ${plural(noBudget, "person doesn't", "people don't")} have one yet` : ""}.">
+        <span class="stat-l">Budget</span>
+        <span class="stat-v num">${budget == null ? "—" : big(budget)}</span>
+        ${noBudget && people.length ? `<span class="stat-note">+ ${noBudget} without a budget</span>` : ""}
+      </button>`;
     const syncedTime = state.syncedAt ? new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
 
     app.innerHTML = `
-      <header class="head"><h1>Christmas Gift List</h1>${ringHtml(daysToChristmas())}</header>
+      <header class="head"><h1>Christmas Gift List</h1>
+        <div class="head-r">
+          <button class="privbtn" data-act="privacy" aria-pressed="${state.priv}" aria-label="${state.priv ? "Show amounts and gifts" : "Hide amounts and gifts"}">${state.priv ? EYE_OFF : EYE}</button>
+          ${ringHtml(daysToChristmas())}
+        </div>
+      </header>
       ${state.offline ? `<div class="banner" role="status">Offline. Showing the list as of ${esc(syncedTime)}. Changes need a connection.</div>` : ""}
       <section class="card stats" aria-label="Spending summary">
         <div class="stat-grid">
@@ -667,8 +776,10 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         <button data-act="view" data-view="person" aria-pressed="${state.view === "person"}">By person</button>
         <button data-act="view" data-view="status" aria-pressed="${state.view === "status"}">By status</button>
       </div>
+      ${state.view === "person" && people.length > 1 ? `<div class="sortbar"><span>${plural(people.length, "person", "people")}</span>
+        <button class="sortbtn" data-act="sort" aria-label="Sort people. Now: ${sortLabel}">Sort: ${sortLabel} ${DOWN}</button></div>` : ""}
       <section class="card list" aria-label="${state.view === "person" ? "Gifts by person" : "Gifts by status"}">
-        ${state.view === "person" ? personRows(people, gifts) : statusRows(gifts, byId)}
+        ${state.view === "person" ? personRows(sortPeople(people, gifts), gifts, colorOf) : statusRows(gifts, byId)}
       </section>
       <button class="addperson" data-act="add-person">+ Add a person</button>
       <div class="foot">
@@ -676,9 +787,11 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         <div class="foot-actions">
           <button class="lock" data-act="export">Export a backup</button>
           <button class="lock" data-act="restore">Restore from a backup</button>
+          <button class="lock" data-act="new-year">Start a new year</button>
           <button class="lock" data-act="lock">Lock on this phone</button>
         </div>
       </div>`;
+    fab.hidden = false;
     renderMini(spent, budget, over);
     if (openPerson) fillPersonCard();
     requestAnimationFrame(updateMini);
@@ -707,7 +820,15 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       case "edit-person": personSheet(id); break;
       case "set-budget": personSheet(id, "budget"); break;
       case "add-person": personSheet(null); break;
-      case "budget": budgetSheet(); break;
+      case "budget-info": toast("Budget is the total of everyone's budgets. Set them on each person."); break;
+      case "privacy":
+        state.priv = !state.priv;
+        document.documentElement.classList.toggle("private", state.priv);
+        render();
+        { const t = app.querySelector('[data-act="privacy"]'); if (t) t.focus({ preventScroll: true }); }
+        break;
+      case "sort": sortSheet(); break;
+      case "new-year": newYearSheet(); break;
       case "lock": lock(""); break;
       case "export": exportBackup(); break;
       case "restore": restoreSheet(); break;
@@ -722,6 +843,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     }
   }
   app.addEventListener("click", onAct);
+  fab.addEventListener("click", () => { if (state.data) pickerSheet(); });
   pscrim.addEventListener("click", e => { if (e.target === pscrim) { closePersonCard(); return; } onAct(e); });
 
   async function cycle(id) {
@@ -734,8 +856,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (state.view === "status" && revealed.has("s:" + from)) revealed.add("s:" + next);
     g.status = next;
     state.lastJson = ""; render();   // show it right away; the next server read replaces it either way
-    await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: null });
+    const ok = await act("gift_set_status", { p_id: id, p_status: next, p_bought_by: null });
     busy.delete(id);
+    if (ok) offerUndo(`Marked ${LABEL[next]}`, () => act("gift_set_status", { p_id: id, p_status: from, p_bought_by: null }));
   }
 
   /* ---------- person pop-up card ---------- */
@@ -884,8 +1007,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   // focus: a selector for the box that should get the keyboard, or null for no keyboard
   function openSheet({ label, title, body, onSubmit, onReady, focus }) {
     sheetToken++;
-    lastFocus = document.activeElement;
-    scrim.classList.remove("in");
+    const swapping = !scrim.hidden && scrim.classList.contains("in");   // one window replacing another, e.g. picker → gift
+    if (!swapping) lastFocus = document.activeElement;
+    if (!swapping) scrim.classList.remove("in");
     scrim.innerHTML = `<form class="sheet${openPerson ? " stacked" : ""}" role="dialog" aria-modal="true" aria-label="${esc(label)}" novalidate tabindex="-1">
       <div class="grab" aria-hidden="true"><span></span></div>
       <div class="ec-head"><h3>${title}</h3><button type="button" class="iconbtn" data-close aria-label="Close">${XICON}</button></div>
@@ -973,24 +1097,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   </div>`;
   const picked = (form, name) => (form.querySelector(`input[name="${name}"]:checked`) || {}).value;
 
-  function budgetSheet() {
-    const cur = state.data.overall_budget;
-    openSheet({
-      label: "Overall budget",
-      title: "Overall Christmas budget",
-      body: `<div class="field"><label for="f-total">Total for all gifts</label>
-          <input id="f-total" inputmode="decimal" placeholder="$0" value="${cur != null ? cur : ""}"></div>
-        ${actions("", "Save budget")}`,
-      focus: "#f-total",
-      onSubmit: async form => {
-        const v = parseMoney(form.querySelector("#f-total").value);
-        if (Number.isNaN(v)) { showErr(form, "Enter a dollar amount, like 500."); return false; }
-        return act("gift_set_budget", { p_amount: v });
-      }
-    });
-  }
-
-  function personSheet(id, focus) {
+  // thenGift: after adding a new person, go straight to adding a gift for them (from the 🎁 button)
+  function personSheet(id, focus, thenGift) {
     const p = id ? state.data.people.find(x => x.id === id) : null;
     const n = p ? state.data.gifts.filter(g => g.person_id === p.id).length : 0;
     openSheet({
@@ -1011,13 +1119,120 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         if (!name) { showErr(form, "Add a name."); return false; }
         if (name.length > 80) { showErr(form, "Keep the name under 80 characters."); return false; }
         if (Number.isNaN(budget)) { showErr(form, "Enter the budget as a dollar amount, like 75."); return false; }
-        return act("gift_save_person", { p_id: p ? p.id : null, p_name: name, p_budget: budget, p_is_child: kid });
+        const r = await send("gift_save_person", { p_id: p ? p.id : null, p_name: name, p_budget: budget, p_is_child: kid });
+        if (!r.ok) return false;
+        await refresh();
+        if (!p && thenGift && r.value) setTimeout(() => giftSheet(r.value, null), 0);   // opens right after this window closes
+        return true;
       },
       onReady: form => {
         const del = form.querySelector("#f-del");
         if (del) armButton(del, n ? `Remove ${p.name} and ${plural(n, "gift", "gifts")}?` : `Remove ${p.name}?`, async () => {
+          const person = { name: p.name, budget: p.budget, is_child: p.is_child };
+          const theirGifts = state.data.gifts.filter(g => g.person_id === p.id).map(g => Object.assign({}, g));
           revealed.delete("p:" + p.id);
-          return act("gift_delete_person", { p_id: p.id });
+          const ok = await act("gift_delete_person", { p_id: p.id });
+          if (ok) offerUndo(`Removed ${person.name}`, async () => {
+            const r = await send("gift_save_person", { p_id: null, p_name: person.name, p_budget: person.budget, p_is_child: person.is_child });
+            if (!r.ok) return false;
+            for (const g of theirGifts) {
+              const r2 = await send("gift_save_gift", Object.assign({ p_id: null }, giftArgs(g, r.value)));
+              if (!r2.ok) break;
+            }
+            await refresh();
+            return true;
+          });
+          return ok;
+        });
+      }
+    });
+  }
+
+  // The 🎁 button: pick who the gift is for (kids first), or add someone new.
+  function pickerSheet() {
+    const people = state.data.people;
+    if (!people.length) { personSheet(null, null, true); return; }
+    const colorOf = colorsOf(people);
+    const order = people.filter(p => p.is_child).concat(people.filter(p => !p.is_child));
+    const count = p => state.data.gifts.filter(g => g.person_id === p.id).length;
+    openSheet({
+      label: "Add a gift",
+      title: "Who's it for?",
+      focus: null,
+      onSubmit: null,
+      body: `<div class="pick-list">
+        ${order.map(p => `<button type="button" class="pick-row" data-pick="${esc(p.id)}">
+          <span class="avatar av-${colorOf[p.id]}" aria-hidden="true">${esc(initials(p.name))}</span>
+          <span>${esc(p.name)}${p.is_child ? STAR : ""} <small>· ${plural(count(p), "gift", "gifts")}</small></span>
+        </button>`).join("")}
+        <button type="button" class="pick-row pick-new" data-pick="new">
+          <span class="avatar av-0" aria-hidden="true">+</span><span>New person</span>
+        </button>
+      </div>`,
+      onReady: form => form.querySelectorAll("[data-pick]").forEach(btn => btn.addEventListener("click", () => {
+        const v = btn.dataset.pick;
+        if (v === "new") personSheet(null, null, true); else giftSheet(v, null);
+      }))
+    });
+  }
+
+  function sortSheet() {
+    openSheet({
+      label: "Sort people",
+      title: "Sort people by",
+      focus: null,
+      onSubmit: null,
+      body: `<div class="optlist">${SORTS.map(([v, l, d]) => `<button type="button" class="opt" data-sort="${v}" aria-pressed="${state.sort === v}">${l}<small>${d}</small></button>`).join("")}</div>`,
+      onReady: form => form.querySelectorAll("[data-sort]").forEach(btn => btn.addEventListener("click", () => {
+        state.sort = btn.dataset.sort;
+        store.set("giftSort", state.sort);
+        render();
+        closeSheet();
+      }))
+    });
+  }
+
+  // Start a new year: save a backup file first, then clear every gift. People, kids and budgets stay.
+  function newYearSheet() {
+    const n = state.data.gifts.length;
+    let saved = false;
+    openSheet({
+      label: "Start a new year",
+      title: "Start a new year",
+      focus: null,
+      onSubmit: null,
+      body: n === 0
+        ? `<p>There aren't any gifts on the list, so there's nothing to clear.</p>`
+        : `<p>This clears all ${plural(n, "gift", "gifts")} so you can start fresh. Everyone on the list stays, along with ⭐ kids and their budgets.</p>
+          <div class="steps">
+            <button type="button" class="btn primary wide" id="ny-save">1. Save a backup of this year</button>
+            <button type="button" class="btn danger wide" id="ny-clear" disabled>2. Clear all gifts</button>
+          </div>
+          <p class="small">The clear button turns on once the backup is saved. To bring this year's gifts back later, use Restore from a backup with that file.</p>
+          <div class="err" aria-live="polite"></div>`,
+      onReady: form => {
+        const saveBtn = form.querySelector("#ny-save"), clearBtn = form.querySelector("#ny-clear");
+        if (!saveBtn) return;
+        saveBtn.addEventListener("click", async () => {
+          if (await exportBackup()) {
+            saved = true;
+            saveBtn.textContent = "✓ Backup saved";
+            saveBtn.classList.remove("primary");
+            clearBtn.disabled = false;
+          }
+        });
+        armButton(clearBtn, "Tap again to clear all gifts", async () => {
+          if (!saved) return false;
+          const ids = state.data.gifts.map(g => g.id);
+          for (let i = 0; i < ids.length; i++) {
+            clearBtn.textContent = `Clearing ${i + 1} of ${ids.length}…`;
+            const r = await send("gift_delete_gift", { p_id: ids[i] });
+            if (!r.ok) { await refresh(); showErr(form, "Some gifts weren't cleared. Check your connection and try again."); return false; }
+          }
+          await refresh();
+          revealed.clear();
+          toast("Fresh start. All gifts cleared.");
+          return true;
         });
       }
     });
@@ -1067,7 +1282,12 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         form.querySelectorAll('input[name="status"]').forEach(r => r.addEventListener("change", showExp));
         showExp();
         const del = form.querySelector("#f-del");
-        if (del) armButton(del, "Delete this gift?", () => act("gift_delete_gift", { p_id: g.id }));
+        if (del) armButton(del, "Delete this gift?", async () => {
+          const copy = Object.assign({}, g);
+          const ok = await act("gift_delete_gift", { p_id: g.id });
+          if (ok) offerUndo("Gift deleted", () => act("gift_save_gift", Object.assign({ p_id: null }, giftArgs(copy, copy.person_id))));
+          return ok;
+        });
       }
     });
   }
@@ -1088,21 +1308,24 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
     }
     rows.push([]);
-    rows.push(["Overall budget", data.overall_budget]);
+    const set = data.people.filter(p => p.budget != null);
+    rows.push(["Overall budget", set.length ? Math.round(set.reduce((a, p) => a + p.budget, 0) * 100) / 100 : ""]);
     rows.push(["Exported", new Date().toLocaleString()]);
     return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
   }
   async function exportBackup() {
     // Use the list on screen (refreshed every few seconds) so the share sheet opens straight from the tap.
-    if (!state.data) { toast("Nothing to export yet."); return; }
+    // Returns true once the file is saved or shared, false if it was cancelled or failed.
+    if (!state.data) { toast("Nothing to export yet."); return false; }
     const d = new Date();
     const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     const name = `christmas-gifts-${stamp}.csv`;
     const csv = buildCsv(state.data);
     let file = null;
     try { file = new File([csv], name, { type: "text/csv" }); } catch (_) {}
+    let ok = false;
     if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Christmas gift list backup" }); }
+      try { await navigator.share({ files: [file], title: "Christmas gift list backup" }); ok = true; }
       catch (e) { if (e && e.name !== "AbortError") toast("Couldn't open the share sheet. Try again."); }
     } else {
       const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -1110,8 +1333,10 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       toast("Backup saved to your downloads.");
+      ok = true;
     }
-    if (state.offline) toast("You're offline, so this backup is from " + new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    if (ok && state.offline) toast("You're offline, so this backup is from " + new Date(state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    return ok;
   }
 
   /* ---------- restore ---------- */
