@@ -40,7 +40,7 @@ body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.4;
   padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 160px);   /* room for the floating 🙈 and 🎁 buttons */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 160px);   /* room for the floating 👀 and 🎁 buttons */
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   -webkit-tap-highlight-color: transparent;
@@ -252,7 +252,7 @@ html.locked, html.locked body { overflow: hidden; }
 .ec-body {
   flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: 14px;
-  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(84px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));   /* room so Save clears the 🙈 */
+  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(84px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));   /* room so Save clears the 👀 */
 }
 .discard {
   flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
@@ -375,7 +375,7 @@ html.popup .privfab { bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }  
 <div class="mini" id="mini"></div>
 <div class="pscrim" id="pscrim" hidden></div>
 <button class="fab" id="fab" type="button" aria-label="Add a gift" hidden>🎁</button>
-<button class="privfab" id="privfab" type="button" aria-pressed="false" aria-label="Hide amounts and gifts" hidden>🙈</button>
+<button class="privfab" id="privfab" type="button" aria-pressed="false" aria-label="Hide amounts and gifts" hidden>👀</button>
 <div class="undo" id="undo" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="forpanel" id="forpanel" hidden>
@@ -894,7 +894,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   app.addEventListener("click", onAct);
   fab.addEventListener("click", () => { if (state.data) giftSheet(null, null); });
 
-  // 🙈 privacy button: floats above the 🎁 and stays on top of every card and window, so it can
+  // 👀 privacy button: floats above the 🎁 and stays on top of every card and window, so it can
   // be flipped from anywhere. Gold when on. Always starts off.
   function setPrivacy(on) {
     state.priv = on;
@@ -904,7 +904,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     updateMini();
   }
   privfab.addEventListener("click", () => setPrivacy(!state.priv));
-  // While a card or window is open the 🎁 is covered, so the 🙈 drops into its corner.
+  // While a card or window is open the 🎁 is covered, so the 👀 drops into its corner.
   function syncPopupState() {
     document.documentElement.classList.toggle("popup", !pscrim.hidden || !scrim.hidden);
   }
