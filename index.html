@@ -40,7 +40,7 @@ body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.4;
   padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);   /* room for the floating gift button */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 160px);   /* room for the floating 👀 and 🎁 buttons */
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   -webkit-tap-highlight-color: transparent;
@@ -72,8 +72,6 @@ h1 { margin: 0; min-width: 0; font-family: var(--display); font-weight: 800; fon
 .stat-btn .stat-l { display: inline-flex; align-items: center; gap: 4px; }
 .stat-note { font-size: 12px; font-weight: 700; line-height: 1.25; color: var(--gold); }
 .head-r { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.privbtn { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--soft); }
-.privbtn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 /* Privacy mode: blur amounts and gift details everywhere; people's names stay readable */
 html.private .stat-v, html.private .mv, html.private .amt, html.private .g-item, html.private .g-sub, html.private .g-note,
 html.private .kids-sum, html.private .kid-amt, html.private .kids-note, html.private .pc-money, html.private .who-name small {
@@ -219,7 +217,7 @@ html.private .kids-sum, html.private .kid-amt, html.private .kids-note, html.pri
 .pc-money b { color: var(--ink); font-size: 18px; }
 .pc-money .over { color: var(--gold); font-weight: 700; }
 .pc-money .setlink { font-size: 14px; min-height: 36px; }
-.pc-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding: 14px max(18px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); }
+.pc-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding: 14px max(18px, env(safe-area-inset-right, 0px)) calc(84px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); }
 .pc-body .addgift { margin-top: 4px; min-height: 48px; }
 .nobudget { width: 100%; min-height: 48px; padding: 0 14px; border: 1.5px dashed var(--gold); border-radius: 12px; background: var(--given-bg); color: var(--gold); font-size: 15px; font-weight: 700; }
 .nobudget span { text-decoration: underline; text-underline-offset: 3px; }
@@ -254,7 +252,7 @@ html.locked, html.locked body { overflow: hidden; }
 .ec-body {
   flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   display: flex; flex-direction: column; gap: 14px;
-  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
+  padding: 6px max(18px, env(safe-area-inset-right, 0px)) calc(84px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));   /* room so Save clears the 👀 */
 }
 .discard {
   flex-shrink: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
@@ -316,6 +314,15 @@ html.locked, html.locked body { overflow: hidden; }
   display: flex; align-items: center; justify-content: center; font-size: 30px; line-height: 1;
 }
 .fab:active { transform: scale(0.94); }
+.privfab {
+  position: fixed; z-index: 32; right: calc(max(16px, env(safe-area-inset-right, 0px)) + 5px); bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+  width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center; font-size: 25px; line-height: 1;
+  transition: bottom .25s ease, background .2s ease, border-color .2s ease;
+}
+.privfab:active { transform: scale(0.94); }
+.privfab[aria-pressed="true"] { background: var(--gold); border-color: var(--ink); box-shadow: 0 0 0 3px var(--given-bg), 0 6px 18px rgba(0, 0, 0, 0.45); }
+html.popup .privfab { bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }   /* the 🎁 is covered, so take its corner */
 .undo {
   position: fixed; z-index: 25; left: max(16px, env(safe-area-inset-left, 0px)); right: calc(max(16px, env(safe-area-inset-right, 0px)) + 76px);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 19px); max-width: 480px; min-height: 56px;
@@ -359,7 +366,7 @@ html.locked, html.locked body { overflow: hidden; }
 .opt small { font-size: 13px; font-weight: 500; color: var(--muted); }
 .opt[aria-pressed="true"] { border-color: var(--green); background: var(--bought-bg); }
 
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(156px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 40; max-width: calc(100% - 32px); }
 @media (prefers-reduced-motion: reduce) { .cane > span, .mini, .mini.on, .pscrim, .pcard, .scrim, .sheet { transition: none !important; } }
 </style>
 </head>
@@ -368,6 +375,7 @@ html.locked, html.locked body { overflow: hidden; }
 <div class="mini" id="mini"></div>
 <div class="pscrim" id="pscrim" hidden></div>
 <button class="fab" id="fab" type="button" aria-label="Add a gift" hidden>🎁</button>
+<button class="privfab" id="privfab" type="button" aria-pressed="false" aria-label="Hide amounts and gifts" hidden>👀</button>
 <div class="undo" id="undo" role="status" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
 <div class="forpanel" id="forpanel" hidden>
@@ -441,6 +449,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   const pscrim = document.getElementById("pscrim");
   const fab = document.getElementById("fab");
   const undoEl = document.getElementById("undo");
+  const privfab = document.getElementById("privfab");
   const forpanel = document.getElementById("forpanel");
   let openPerson = null;    // id of the person whose card is open
   let pLastFocus = null;
@@ -574,7 +583,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   function lock(msg) {
     state.code = null; state.data = null; state.lastJson = "";
     store.del("giftCode"); store.del("giftCache");
-    state.priv = false; document.documentElement.classList.remove("private");
+    setPrivacy(false);
     revealed.clear(); closeSheet(true); closePersonCard(true); hideUndo();
     renderGate(msg || "");
   }
@@ -609,7 +618,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
   function renderGate(msg) {
     mini.classList.remove("on");
-    fab.hidden = true;
+    fab.hidden = true; privfab.hidden = true;
     app.innerHTML = `<div class="gate">
       ${ringHtml(daysToChristmas())}
       <h1>Christmas Gift List</h1>
@@ -775,7 +784,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (!state.code) return renderGate("");
     if (!state.data) {
       mini.classList.remove("on");
-      fab.hidden = true;
+      fab.hidden = true; privfab.hidden = true;
       app.innerHTML = `<div class="gate">${ringHtml(daysToChristmas())}<p>${state.offline ? "Can't reach the list. Check your connection; it will retry on its own." : "Loading the list…"}</p></div>`;
       return;
     }
@@ -802,10 +811,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
 
     app.innerHTML = `
       <header class="head"><h1>Christmas Gift List</h1>
-        <div class="head-r">
-          <button class="privbtn" data-act="privacy" aria-pressed="${state.priv}" aria-label="${state.priv ? "Show amounts and gifts" : "Hide amounts and gifts"}">${state.priv ? EYE_OFF : EYE}</button>
-          ${ringHtml(daysToChristmas())}
-        </div>
+        <div class="head-r">${ringHtml(daysToChristmas())}</div>
       </header>
       ${state.offline ? `<div class="banner" role="status">Offline. Showing the list as of ${esc(syncedTime)}. Changes need a connection.</div>` : ""}
       <section class="card stats" aria-label="Spending summary">
@@ -840,7 +846,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           <button class="lock" data-act="lock">Lock on this phone</button>
         </div>
       </div>`;
-    fab.hidden = false;
+    fab.hidden = false; privfab.hidden = false;
     renderMini(spent, budget, over);
     if (openPerson) fillPersonCard();
     requestAnimationFrame(updateMini);
@@ -870,12 +876,6 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       case "set-budget": personSheet(id, "budget"); break;
       case "add-person": personSheet(null); break;
       case "budget-info": toast("Budget is the total of everyone's budgets. Set them on each person."); break;
-      case "privacy":
-        state.priv = !state.priv;
-        document.documentElement.classList.toggle("private", state.priv);
-        render();
-        { const t = app.querySelector('[data-act="privacy"]'); if (t) t.focus({ preventScroll: true }); }
-        break;
       case "sort": sortSheet(); break;
       case "new-year": newYearSheet(); break;
       case "lock": lock(""); break;
@@ -893,6 +893,21 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
   app.addEventListener("click", onAct);
   fab.addEventListener("click", () => { if (state.data) giftSheet(null, null); });
+
+  // 👀 privacy button: floats above the 🎁 and stays on top of every card and window, so it can
+  // be flipped from anywhere. Gold when on. Always starts off.
+  function setPrivacy(on) {
+    state.priv = on;
+    document.documentElement.classList.toggle("private", on);
+    privfab.setAttribute("aria-pressed", String(on));
+    privfab.setAttribute("aria-label", on ? "Show amounts and gifts" : "Hide amounts and gifts");
+    updateMini();
+  }
+  privfab.addEventListener("click", () => setPrivacy(!state.priv));
+  // While a card or window is open the 🎁 is covered, so the 👀 drops into its corner.
+  function syncPopupState() {
+    document.documentElement.classList.toggle("popup", !pscrim.hidden || !scrim.hidden);
+  }
   pscrim.addEventListener("click", e => { if (e.target === pscrim) { closePersonCard(); return; } onAct(e); });
 
   async function cycle(id) {
@@ -924,6 +939,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       <div class="pc-body" id="pc-body"></div>
     </section>`;
     pscrim.hidden = false;
+    syncPopupState();
     document.documentElement.classList.add("locked");
     fillPersonCard();
     const sheet = pscrim.querySelector(".pcard");
@@ -944,6 +960,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     const done = () => {
       if (openPerson) return;      // another card opened in the meantime
       pscrim.hidden = true; pscrim.innerHTML = "";
+      syncPopupState();
       document.documentElement.classList.remove("locked");
     };
     if (instant || reduceMotion()) done(); else setTimeout(done, 300);
@@ -1034,7 +1051,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
   function updateMini() {
     const g = state.data && state.code ? app.querySelector(".stat-grid") : null;
-    mini.classList.toggle("on", !!g && g.getBoundingClientRect().bottom < 4);
+    // The pinned budget bar stays away while privacy is on; its numbers would be hidden anyway.
+    mini.classList.toggle("on", !!g && !state.priv && g.getBoundingClientRect().bottom < 4);
   }
   let ticking = false;
   window.addEventListener("scroll", () => {
@@ -1070,6 +1088,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       </div>
     </form>`;
     scrim.hidden = false;
+    syncPopupState();
     const form = scrim.querySelector("form");
     form.addEventListener("submit", async ev => {
       ev.preventDefault();
@@ -1116,7 +1135,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     const form = scrim.querySelector("form");
     scrim.classList.remove("in");
     if (form) { form.classList.remove("dragging"); form.style.transform = "translateY(100%)"; }
-    const done = () => { if (token !== sheetToken) return; scrim.hidden = true; scrim.innerHTML = ""; };
+    const done = () => { if (token !== sheetToken) return; scrim.hidden = true; scrim.innerHTML = ""; syncPopupState(); };
     if (instant || reduceMotion()) done(); else setTimeout(done, 300);
     if (!instant && lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
   }
