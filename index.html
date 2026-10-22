@@ -177,6 +177,7 @@ html.private .kids-sum, html.private .kid-amt, html.private .kids-note, html.pri
 .g-sub .soon { color: var(--ordered-fg); font-weight: 600; }
 .g-note { font-size: 13px; color: var(--soft); font-style: italic; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .addprice { background: none; border: 0; padding: 0; color: var(--pink); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.openlink { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; margin: 2px 0; border-radius: 999px; background: var(--ordered-bg); color: var(--ordered-fg); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .pill { min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 13px; font-weight: 700; flex-shrink: 0; display: inline-flex; align-items: center; }
 .st-idea { background: var(--idea-bg); color: var(--idea-fg); }
 .st-ordered { background: var(--ordered-bg); color: var(--ordered-fg); }
@@ -460,6 +461,18 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     return isFinite(n) && n >= 0 && n < 1e8 ? Math.round(n * 100) / 100 : NaN;
   };
   const statusOf = g => STATUSES.includes(g.status) ? g.status : "idea";
+  // Links: only real web addresses. Pasted share text ("Check this out https://…") keeps just the address;
+  // "target.com/…" gets https:// added. Returns "" for empty, null when it isn't usable.
+  const safeLink = s => /^https?:\/\/\S+$/i.test(String(s || "")) && String(s).length <= 1000;
+  function cleanLink(raw) {
+    let t = String(raw || "").trim();
+    if (!t) return "";
+    const found = t.match(/https?:\/\/[^\s"'<>]+/i);
+    if (found) t = found[0];
+    else if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t)) t = "https://" + t;
+    t = t.replace(/[).,;]+$/, "");
+    return safeLink(t) ? t : null;
+  }
   const counts = g => statusOf(g) !== "idea";   // ordered and later count as money spent
   const spentOf = gs => gs.reduce((a, g) => a + (counts(g) && g.price != null ? g.price : 0), 0);
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
@@ -514,7 +527,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       people: (d.people || []).map(p => ({ id: p.id, name: p.name, budget: num(p.budget), sort: p.sort, is_child: !!p.is_child })),
       gifts: (d.gifts || []).map(g => ({
         id: g.id, person_id: g.person_id, item: g.item, store: g.store || "", price: num(g.price), status: g.status,
-        notes: g.notes || "", bought_by: num(g.bought_by), expected: g.expected || null
+        notes: g.notes || "", bought_by: num(g.bought_by), expected: g.expected || null, link: g.link || ""
       })),
       overall_budget: num(d.overall_budget)
     };
@@ -585,7 +598,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   });
   const giftArgs = (g, personId) => ({
     p_person_id: personId, p_item: g.item, p_store: g.store, p_price: g.price, p_status: statusOf(g),
-    p_notes: g.notes, p_bought_by: g.bought_by, p_expected: g.expected ? String(g.expected).slice(0, 10) : null
+    p_notes: g.notes, p_bought_by: g.bought_by, p_expected: g.expected ? String(g.expected).slice(0, 10) : null, p_link: g.link || ""
   });
 
   /* ---------- screens ---------- */
@@ -655,6 +668,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (g.price != null) sub.push(`<span class="price num">${money(g.price)}</span>`);
     else sub.push(`<button class="addprice" data-act="edit-gift" data-id="${gid}" data-focus="price">add price</button>`);
     const arr = arrivalHtml(g); if (arr) sub.push(arr);
+    if (safeLink(g.link)) sub.push(`<a class="openlink" href="${esc(g.link)}" target="_blank" rel="noopener noreferrer" aria-label="Open the page for ${esc(g.item || "this gift")}">Open ↗</a>`);
     const next = LABEL[STATUSES[(STATUSES.indexOf(st) + 1) % STATUSES.length]].toLowerCase();
     return `<div class="gift">
       <div class="g-text">
@@ -1371,6 +1385,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
           <input id="f-item" type="text" autocomplete="off" value="${esc(g ? g.item : "")}" placeholder="e.g. Board game"></div>
         <div class="field"><label for="f-store">Store</label>
           <input id="f-store" type="text" autocomplete="off" autocapitalize="words" value="${esc(g ? g.store : "")}" placeholder="e.g. Target"></div>
+        <div class="field"><label for="f-link">Link</label>
+          <input id="f-link" type="url" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${esc(g ? g.link : "")}" placeholder="Paste a link from Safari or Amazon"></div>
         <div class="field"><label for="f-price">Price paid</label>
           <input id="f-price" inputmode="decimal" placeholder="$0" value="${g && g.price != null ? g.price : ""}"></div>
         <div class="field"><span class="lbl">Status</span>
@@ -1390,7 +1406,9 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         const status = picked(form, "status") || "idea";
         const notes = form.querySelector("#f-notes").value.trim();
         const exp = status === "ordered" ? (form.querySelector("#f-exp").value || null) : null;
+        const link = cleanLink(form.querySelector("#f-link").value);
         if (!item) { showErr(form, "Say what the gift is."); return false; }
+        if (link === null) { showErr(form, "That link doesn't look right. Paste the full web address, like https://www.target.com/…"); return false; }
         if (item.length > 200 || storeName.length > 120) { showErr(form, "That's too long. Shorten the gift or store name."); return false; }
         if (notes.length > 500) { showErr(form, "Keep notes under 500 characters."); return false; }
         if (Number.isNaN(price)) { showErr(form, "Enter the price as a dollar amount, like 24.99."); return false; }
@@ -1418,7 +1436,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
         }
         const ok = await act("gift_save_gift", {
           p_id: g ? g.id : null, p_person_id: forId, p_item: item, p_store: storeName, p_price: price, p_status: status,
-          p_notes: notes, p_bought_by: g ? g.bought_by : null, p_expected: exp   // keep any old shopper tag as it was
+          p_notes: notes, p_bought_by: g ? g.bought_by : null, p_expected: exp,   // keep any old shopper tag as it was
+          p_link: link
         });
         if (ok && pick) toast(`Added for ${forName}.`);
         return ok;
@@ -1441,7 +1460,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
   }
 
   /* ---------- export ---------- */
-  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Expected delivery", "Notes"];
+  const COLS = ["Person", "Kid", "Person budget", "Gift", "Store", "Price", "Status", "Expected delivery", "Notes", "Link"];
   function csvCell(v) {
     let s = v == null ? "" : String(v);
     if (/^[=+\-@]/.test(s)) s = "'" + s;   // keep spreadsheet apps from treating text as a formula
@@ -1452,8 +1471,8 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     for (const p of data.people) {
       const gs = data.gifts.filter(g => g.person_id === p.id);
       const kid = p.is_child ? "Yes" : "";
-      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", ""]);
-      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], g.expected ? String(g.expected).slice(0, 10) : "", g.notes]);
+      if (!gs.length) rows.push([p.name, kid, p.budget, "", "", "", "", "", "", ""]);
+      for (const g of gs) rows.push([p.name, kid, p.budget, g.item, g.store, g.price, LABEL[statusOf(g)], g.expected ? String(g.expected).slice(0, 10) : "", g.notes, g.link]);
     }
     rows.push([]);
     const set = data.people.filter(p => p.budget != null);
@@ -1513,7 +1532,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
     if (hi < 0) throw new Error("This doesn't look like a backup from the gift list. Pick a file made with Export a backup.");
     const head = rows[hi].map(c => c.toLowerCase());
     const col = name => head.indexOf(name.toLowerCase());
-    const ix = { person: col("Person"), kid: col("Kid"), pbudget: col("Person budget"), gift: col("Gift"), store: col("Store"), price: col("Price"), status: col("Status"), by: col("Bought by"), exp: col("Expected delivery"), notes: col("Notes") };
+    const ix = { person: col("Person"), kid: col("Kid"), pbudget: col("Person budget"), gift: col("Gift"), store: col("Store"), price: col("Price"), status: col("Status"), by: col("Bought by"), exp: col("Expected delivery"), notes: col("Notes"), link: col("Link") };
     const get = (r, k) => ix[k] >= 0 && r[ix[k]] != null ? r[ix[k]] : "";
     const meta = {};
     const lines = [];
@@ -1540,7 +1559,7 @@ const SUPABASE_KEY = "sb_publishable_0dGH71KDa1elQhSO6FkzTw_t46sGIzK";
       if (!item) continue;
       const price = parseMoney(get(r, "price"));
       const exp = /^\d{4}-\d{2}-\d{2}$/.test(get(r, "exp")) ? get(r, "exp") : null;
-      p.gifts.push({ item, store: get(r, "store").slice(0, 120), price: Number.isNaN(price) ? null : price, status: statusFrom(get(r, "status")), bought_by: byFrom(get(r, "by")), expected: exp, notes: get(r, "notes").slice(0, 500) });
+      p.gifts.push({ item, store: get(r, "store").slice(0, 120), price: Number.isNaN(price) ? null : price, status: statusFrom(get(r, "status")), bought_by: byFrom(get(r, "by")), expected: exp, notes: get(r, "notes").slice(0, 500), link: cleanLink(get(r, "link")) || "" });
       giftCount++;
     }
     if (!people.length) throw new Error("That backup doesn't have anyone in it, so there's nothing to restore.");
